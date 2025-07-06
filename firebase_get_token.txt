@@ -1,0 +1,4 @@
+window.firebaseAuth.currentUser.getIdToken().then(token => {
+  console.log('Your Firebase ID Token:');
+  console.log(token);
+});
