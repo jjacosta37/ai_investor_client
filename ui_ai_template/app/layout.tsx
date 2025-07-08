@@ -17,6 +17,7 @@ import Navbar from '@/components/navbar/NavbarAdmin';
 import { getActiveRoute, getActiveNavbar } from '@/utils/navigation';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import '@/styles/globals.css';
 import '@/styles/App.css';
 import '@/styles/Contact.css';
 import '@/styles/Plugins.css';
