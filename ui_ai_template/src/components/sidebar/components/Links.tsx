@@ -168,19 +168,6 @@ export function SidebarLinks(props: SidebarLinksProps) {
                   </List>
                 </AccordionPanel>
               </AccordionItem>
-              <Link isExternal href="" mt="6px">
-                <Badge
-                  display={{ base: 'flex', lg: 'none', xl: 'flex' }}
-                  colorScheme="brand"
-                  borderRadius="25px"
-                  color="brand.500"
-                  textTransform={'none'}
-                  letterSpacing="0px"
-                  px="8px"
-                >
-                  PRO
-                </Badge>
-              </Link>
             </Flex>
           </Accordion>
         );
@@ -203,7 +190,7 @@ export function SidebarLinks(props: SidebarLinksProps) {
                     activeRoute(route.path.toLowerCase()) ? '22px' : '26px'
                   }
                 >
-                  {route.name === 'Chat UI' || route.name === 'Watchlist' ? (
+                  {true ? (
                     <NavLink
                       href={
                         route.layout ? route.layout + route.path : route.path

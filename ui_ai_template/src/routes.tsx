@@ -6,7 +6,7 @@ import { IRoute } from './types/navigation';
 
 const routes: IRoute[] = [
   {
-    name: 'Chat UI',
+    name: 'AI Analyst',
     path: '/',
     icon: (
       <Icon as={MdAutoAwesome} width="20px" height="20px" color="inherit" />
@@ -14,7 +14,7 @@ const routes: IRoute[] = [
     collapse: false,
   },
   {
-    name: 'Watchlist',
+    name: 'Smart Watchlist',
     path: '/watchlist',
     icon: (
       <Icon as={MdBookmark} width="20px" height="20px" color="inherit" />

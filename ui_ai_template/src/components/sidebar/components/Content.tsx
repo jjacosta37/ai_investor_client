@@ -136,14 +136,14 @@ function SidebarContent(props: SidebarContent) {
           <Links routes={routes} />
         </Box>
 
-        {/* Chat History Section */}
+        {/* Past Analyses Section */}
         <Box mt="20px">
           <HSeparator mb="20px" />
           <Flex align="center" justify="space-between" mb="16px" px="10px">
             <Flex align="center">
               <Icon as={LuHistory} color={iconColor} me="8px" />
               <Text color={textColor} fontSize="sm" fontWeight="600">
-                Chat History
+                Past Analyses
               </Text>
             </Flex>
             <Button
