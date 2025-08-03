@@ -10,6 +10,12 @@ import { linkStyles } from './components/link';
 import { globalStyles } from './styles';
 
 export default extendTheme(
+  {
+    config: {
+      initialColorMode: 'light',
+      useSystemColorMode: false,
+    },
+  },
   globalStyles,
   badgeStyles, // badge styles
   buttonStyles, // button styles

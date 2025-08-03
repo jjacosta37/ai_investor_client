@@ -28,9 +28,10 @@ export function NextAvatar({
                   }
                 : {})}
             alt={alt}
-            objectFit={'fill'}
+            objectFit={'cover'}
             src={src}
             style={{ ...style, borderRadius: '50%' }}
+            nextProps={{ objectFit: 'cover' }}
         />
     );
 }

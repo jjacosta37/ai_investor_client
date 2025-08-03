@@ -1,5 +1,5 @@
 import { Icon } from './lib/chakra';
-import { MdAutoAwesome } from 'react-icons/md';
+import { MdAutoAwesome, MdBookmark } from 'react-icons/md';
 
 // Auth Imports
 import { IRoute } from './types/navigation';
@@ -10,6 +10,14 @@ const routes: IRoute[] = [
     path: '/',
     icon: (
       <Icon as={MdAutoAwesome} width="20px" height="20px" color="inherit" />
+    ),
+    collapse: false,
+  },
+  {
+    name: 'Watchlist',
+    path: '/watchlist',
+    icon: (
+      <Icon as={MdBookmark} width="20px" height="20px" color="inherit" />
     ),
     collapse: false,
   },

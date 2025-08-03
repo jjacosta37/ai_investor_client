@@ -1,6 +1,7 @@
 'use client';
 // chakra imports
 import {
+  Avatar,
   Badge,
   Box,
   Button,
@@ -13,6 +14,7 @@ import {
   Stack,
   Text,
   useColorModeValue,
+  useColorMode,
   useToast,
 } from '@chakra-ui/react';
 import NavLink from '@/components/link/NavLink';
@@ -23,12 +25,12 @@ import Links from '@/components/sidebar/components/Links';
 import ChatHistory from '@/components/sidebar/components/ChatHistory';
 import { HSeparator } from '@/components/separator/Separator';
 import { RoundedChart } from '@/components/icons/Icons';
-import { PropsWithChildren } from 'react';
+import { PropsWithChildren, useState, useEffect } from 'react';
 import { IRoute } from '@/types/navigation';
 import { IoMdPerson, IoMdAdd } from 'react-icons/io';
 import { FiLogOut } from 'react-icons/fi';
 import { LuHistory } from 'react-icons/lu';
-import { MdOutlineManageAccounts, MdOutlineSettings } from 'react-icons/md';
+import { MdOutlineManageAccounts, MdOutlineSettings, MdDarkMode, MdLightMode } from 'react-icons/md';
 import { useAuth } from '@/contexts/AuthContext';
 import { useChatContext } from '@/contexts/ChatContext';
 
@@ -43,7 +45,14 @@ function SidebarContent(props: SidebarContent) {
   const { routes } = props;
   const { user, logout } = useAuth();
   const { createNewChat } = useChatContext();
+  const { colorMode, toggleColorMode } = useColorMode();
   const toast = useToast();
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Ensure hydration safety
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const textColor = useColorModeValue('navy.700', 'white');
   const borderColor = useColorModeValue('gray.200', 'whiteAlpha.300');
@@ -158,32 +167,33 @@ function SidebarContent(props: SidebarContent) {
 
       <Flex
         mt="8px"
-        justifyContent="center"
+        justifyContent="flex-start"
         alignItems="center"
         boxShadow={shadowPillBar}
         borderRadius="30px"
         p="14px"
+        gap="10px"
       >
-        {user?.photoURL ? (
-          <NextAvatar h="34px" w="34px" src={user.photoURL} me="10px" />
-        ) : (
-          <Flex
-            h="34px"
-            w="34px"
-            borderRadius="full"
-            bg="brand.500"
-            color="white"
-            align="center"
-            justify="center"
-            me="10px"
-            fontSize="sm"
-            fontWeight="bold"
-          >
-            {getUserInitials().toUpperCase()}
-          </Flex>
-        )}
-        <Text color={textColor} fontSize="xs" fontWeight="600" me="10px">
-          {getUserDisplayName()}
+        <Avatar
+          h="34px"
+          w="34px"
+          src={isMounted ? (user?.photoURL || undefined) : undefined}
+          name={isMounted ? getUserDisplayName() : ''}
+          bg="brand.500"
+          color="white"
+          fontSize="sm"
+          fontWeight="bold"
+          flexShrink={0}
+        />
+        <Text 
+          color={textColor} 
+          fontSize="xs" 
+          fontWeight="600" 
+          flex="1"
+          lineHeight="1.2"
+          minW="0"
+        >
+          {isMounted ? getUserDisplayName() : 'Loading...'}
         </Text>
         <Menu>
           <MenuButton
@@ -257,7 +267,7 @@ function SidebarContent(props: SidebarContent) {
                 </Link>
               </Flex>
             </Box>
-            <Box>
+            <Box mb="30px">
               <Flex cursor={'not-allowed'} align="center">
                 <Icon
                   as={IoMdPerson}
@@ -283,6 +293,26 @@ function SidebarContent(props: SidebarContent) {
                     PRO
                   </Badge>
                 </Link>
+              </Flex>
+            </Box>
+            <Box>
+              <Flex 
+                cursor="pointer" 
+                align="center" 
+                onClick={toggleColorMode}
+                _hover={{ opacity: 0.8 }}
+                transition="opacity 0.2s"
+              >
+                <Icon
+                  as={colorMode === 'light' ? MdDarkMode : MdLightMode}
+                  width="24px"
+                  height="24px"
+                  color={iconColor}
+                  me="12px"
+                />
+                <Text color={textColor} fontWeight="500" fontSize="sm">
+                  {colorMode === 'light' ? 'Dark Mode' : 'Light Mode'}
+                </Text>
               </Flex>
             </Box>
           </MenuList>

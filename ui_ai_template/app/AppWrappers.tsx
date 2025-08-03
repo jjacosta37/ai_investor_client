@@ -20,10 +20,8 @@ const _NoSSR = ({ children }: any) => (
 
 export default function AppWrappers({ children }: { children: ReactNode }) {
   return (
-    // <NoSSR>
-    <ChakraProvider theme={theme}>
+    <ChakraProvider theme={theme} resetCSS={false}>
       <AuthProvider>{children}</AuthProvider>
     </ChakraProvider>
-    // </NoSSR>
   );
 }

@@ -4,17 +4,15 @@ import type { AppProps } from 'next/app';
 import {
   ChakraProvider,
   Box,
-  Portal,
   useDisclosure,
   Flex,
   Text,
   useColorModeValue,
+  ColorModeScript,
 } from '@chakra-ui/react';
 import theme from '@/theme/theme';
 import routes from '@/routes';
 import Sidebar from '@/components/sidebar/Sidebar';
-import Navbar from '@/components/navbar/NavbarAdmin';
-import { getActiveRoute, getActiveNavbar } from '@/utils/navigation';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import '@/styles/globals.css';
@@ -35,7 +33,6 @@ function AuthenticatedLayout({ children }: { children: ReactNode }) {
       <Box>
         <Sidebar routes={routes} />
         <Box
-          pt={{ base: '60px', md: '000px' }}
           float="right"
           minHeight="100vh"
           height="100%"
@@ -49,22 +46,11 @@ function AuthenticatedLayout({ children }: { children: ReactNode }) {
           transitionProperty="top, bottom, width"
           transitionTimingFunction="linear, linear, ease"
         >
-          <Portal>
-            <Box>
-              <Navbar
-                onOpen={onOpen}
-                logoText={'Chat AI Template'}
-                brandText={getActiveRoute(routes, pathname)}
-                secondary={getActiveNavbar(routes, pathname)}
-              />
-            </Box>
-          </Portal>
           <Box
             mx="auto"
             p={{ base: '20px', md: '30px' }}
             pe="20px"
             minH="100vh"
-            pt="50px"
           >
             {children}
           </Box>
@@ -78,10 +64,16 @@ function RootLayoutContent({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading } = useAuth();
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Ensure hydration safety
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Handle authentication redirects
   useEffect(() => {
-    if (!loading) {
+    if (!loading && isMounted) {
       const isAuthPage = pathname?.includes('sign-in');
 
       if (!user && !isAuthPage) {
@@ -92,10 +84,10 @@ function RootLayoutContent({ children }: { children: ReactNode }) {
         router.push('/');
       }
     }
-  }, [user, loading, pathname, router]);
+  }, [user, loading, pathname, router, isMounted]);
 
-  // Show loading while checking authentication
-  if (loading) {
+  // Show loading while checking authentication or before hydration
+  if (loading || !isMounted) {
     return (
       <Flex
         minH="100vh"
@@ -126,6 +118,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body id={'root'}>
+        <ColorModeScript initialColorMode={theme.config.initialColorMode} />
         <AppWrappers>
           <RootLayoutContent>{children}</RootLayoutContent>
         </AppWrappers>

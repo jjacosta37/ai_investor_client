@@ -45,7 +45,12 @@ export function SidebarLinks(props: SidebarLinksProps) {
   // verifies if routeName is the one active (in browser input)
   const activeRoute = useCallback(
     (routeName: string) => {
-      return pathname?.includes(routeName);
+      // Handle exact match for home route
+      if (routeName === '/') {
+        return pathname === '/';
+      }
+      // For other routes, check if pathname starts with the route
+      return pathname?.startsWith(routeName);
     },
     [pathname],
   );
@@ -198,7 +203,7 @@ export function SidebarLinks(props: SidebarLinksProps) {
                     activeRoute(route.path.toLowerCase()) ? '22px' : '26px'
                   }
                 >
-                  {route.name === 'Chat UI' ? (
+                  {route.name === 'Chat UI' || route.name === 'Watchlist' ? (
                     <NavLink
                       href={
                         route.layout ? route.layout + route.path : route.path
@@ -206,40 +211,72 @@ export function SidebarLinks(props: SidebarLinksProps) {
                       key={key}
                       styles={{ width: '100%' }}
                     >
-                      <Flex
+                      <Box
+                        position="relative"
                         w="100%"
-                        alignItems="center"
-                        justifyContent="center"
+                        borderRadius="12px"
+                        transition="all 0.2s ease"
+                        bg={
+                          activeRoute(route.path.toLowerCase())
+                            ? useColorModeValue('brand.50', 'brand.900')
+                            : 'transparent'
+                        }
+                        _hover={{
+                          bg: activeRoute(route.path.toLowerCase())
+                            ? useColorModeValue('brand.100', 'brand.800')
+                            : useColorModeValue('gray.50', 'whiteAlpha.100')
+                        }}
+                        px="12px"
+                        py="8px"
                       >
-                        <Box
-                          color={
-                            route.disabled
-                              ? gray
-                              : activeRoute(route.path.toLowerCase())
-                              ? activeIcon
-                              : inactiveColor
-                          }
-                          me="12px"
-                          mt="6px"
+                        {activeRoute(route.path.toLowerCase()) && (
+                          <Box
+                            position="absolute"
+                            left="0"
+                            top="0"
+                            bottom="0"
+                            w="3px"
+                            bg={useColorModeValue('brand.500', 'brand.300')}
+                            borderRadius="0 2px 2px 0"
+                          />
+                        )}
+                        <Flex
+                          w="100%"
+                          alignItems="center"
+                          justifyContent="center"
                         >
-                          {route.icon}
-                        </Box>
-                        <Text
-                          me="auto"
-                          color={
-                            route.disabled
-                              ? gray
-                              : activeRoute(route.path.toLowerCase())
-                              ? activeColor
-                              : 'gray.500'
-                          }
-                          fontWeight="500"
-                          letterSpacing="0px"
-                          fontSize="sm"
-                        >
-                          {route.name}
-                        </Text>
-                      </Flex>
+                          <Box
+                            color={
+                              route.disabled
+                                ? gray
+                                : activeRoute(route.path.toLowerCase())
+                                ? activeIcon
+                                : inactiveColor
+                            }
+                            me="12px"
+                            mt="6px"
+                          >
+                            {route.icon}
+                          </Box>
+                          <Text
+                            me="auto"
+                            color={
+                              route.disabled
+                                ? gray
+                                : activeRoute(route.path.toLowerCase())
+                                ? activeColor
+                                : 'gray.500'
+                            }
+                            fontWeight={
+                              activeRoute(route.path.toLowerCase()) ? '600' : '500'
+                            }
+                            letterSpacing="0px"
+                            fontSize="sm"
+                          >
+                            {route.name}
+                          </Text>
+                        </Flex>
+                      </Box>
                     </NavLink>
                   ) : (
                     <Flex
