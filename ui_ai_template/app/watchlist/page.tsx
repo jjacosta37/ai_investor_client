@@ -28,15 +28,21 @@ import {
   SimpleGrid,
 } from '@chakra-ui/react';
 import { MdBookmark, MdAdd, MdTrendingUp, MdSearch, MdShowChart } from 'react-icons/md';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { WatchlistCard, StockData } from '@/components/watchlist/WatchlistCard';
+import { securitiesService } from '@/services/api';
+import { Security } from '@/types/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Watchlist() {
+  // Auth state
+  const { user } = useAuth();
+  
   // Modal state
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<Security[]>([]);
   
   // Watchlist state
   const [watchlistStocks, setWatchlistStocks] = useState<StockData[]>([]);
@@ -49,161 +55,48 @@ export default function Watchlist() {
   const borderColor = useColorModeValue('gray.200', 'whiteAlpha.200');
   const modalBg = useColorModeValue('white', 'navy.800');
 
-  // Load mock watchlist data on component mount
-  useEffect(() => {
-    const mockWatchlistData: StockData[] = [
-      {
-        symbol: 'AAPL',
-        companyName: 'Apple Inc.',
-        currentPrice: 150.25,
-        change: 3.67,
-        changePercent: 2.5,
-        volume: 45231000,
-        marketCap: '$2.45T',
-        peRatio: 24.5,
-        weekHigh52: 198.23,
-        weekLow52: 124.17,
-        lastUpdated: new Date().toISOString(),
-        news: [
-          {
-            id: '1',
-            headline: 'Apple Reports Strong Q4 Earnings Beat Expectations',
-            source: 'Reuters',
-            publishedAt: '2 hours ago',
-            sentiment: 'positive'
-          },
-          {
-            id: '2',
-            headline: 'iPhone 16 Sales Exceed Analyst Projections',
-            source: 'Bloomberg',
-            publishedAt: '5 hours ago',
-            sentiment: 'positive'
-          },
-          {
-            id: '3',
-            headline: 'Apple Faces Regulatory Challenges in EU',
-            source: 'Financial Times',
-            publishedAt: '1 day ago',
-            sentiment: 'negative'
-          }
-        ],
-        upcomingEvents: [
-          {
-            type: 'earnings',
-            date: 'Jan 25, 2024',
-            description: 'Q1 2024 Earnings Report'
-          },
-          {
-            type: 'dividend',
-            date: 'Feb 8, 2024',
-            description: 'Ex-Dividend Date ($0.24)'
-          }
-        ]
-      },
-      {
-        symbol: 'GOOGL',
-        companyName: 'Alphabet Inc.',
-        currentPrice: 2840.12,
-        change: -15.34,
-        changePercent: -0.54,
-        volume: 28431000,
-        marketCap: '$1.85T',
-        peRatio: 22.8,
-        weekHigh52: 3030.93,
-        weekLow52: 2193.62,
-        lastUpdated: new Date().toISOString(),
-        news: [
-          {
-            id: '4',
-            headline: 'Google AI Bard Receives Major Update',
-            source: 'TechCrunch',
-            publishedAt: '3 hours ago',
-            sentiment: 'positive'
-          }
-        ],
-        upcomingEvents: [
-          {
-            type: 'earnings',
-            date: 'Jan 30, 2024',
-            description: 'Q4 2023 Earnings Report'
-          }
-        ]
-      },
-      {
-        symbol: 'TSLA',
-        companyName: 'Tesla, Inc.',
-        currentPrice: 245.67,
-        change: 12.45,
-        changePercent: 5.34,
-        volume: 67834000,
-        marketCap: '$780B',
-        peRatio: 65.2,
-        weekHigh52: 299.29,
-        weekLow52: 138.80,
-        lastUpdated: new Date().toISOString(),
-        news: [
-          {
-            id: '5',
-            headline: 'Tesla Cybertruck Deliveries Begin',
-            source: 'CNBC',
-            publishedAt: '1 hour ago',
-            sentiment: 'positive'
-          },
-          {
-            id: '6',
-            headline: 'Musk Announces New Gigafactory Plans',
-            source: 'Wall Street Journal',
-            publishedAt: '4 hours ago',
-            sentiment: 'neutral'
-          }
-        ],
-        upcomingEvents: [
-          {
-            type: 'earnings',
-            date: 'Jan 24, 2024',
-            description: 'Q4 2023 Earnings Report'
-          }
-        ]
-      }
-    ];
-    
-    setWatchlistStocks(mockWatchlistData);
-  }, []);
 
   // Remove stock from watchlist
   const handleRemoveStock = (symbol: string) => {
     setWatchlistStocks(prev => prev.filter(stock => stock.symbol !== symbol));
   };
 
-  // Mock search function (replace with your actual API call)
-  const handleSearch = async (query: string) => {
-    if (query.length < 2) {
+  // Debounced search with useEffect
+  useEffect(() => {
+    if (searchQuery.length < 2) {
       setSearchResults([]);
+      setIsSearching(false);
       return;
     }
 
+    // Show loading state immediately when user starts typing
     setIsSearching(true);
-    
-    // Simulate API delay
-    setTimeout(() => {
-      // Mock search results
-      const mockResults = [
-        { symbol: 'AAPL', name: 'Apple Inc.', type: 'Stock', price: '$150.25', change: '+2.45%' },
-        { symbol: 'GOOGL', name: 'Alphabet Inc.', type: 'Stock', price: '$2,840.12', change: '+1.23%' },
-        { symbol: 'MSFT', name: 'Microsoft Corporation', type: 'Stock', price: '$378.85', change: '+0.89%' },
-        { symbol: 'TSLA', name: 'Tesla, Inc.', type: 'Stock', price: '$245.67', change: '-1.45%' },
-        { symbol: 'SPY', name: 'SPDR S&P 500 ETF Trust', type: 'ETF', price: '$420.15', change: '+0.75%' },
-      ].filter(item => 
-        item.symbol.toLowerCase().includes(query.toLowerCase()) ||
-        item.name.toLowerCase().includes(query.toLowerCase())
-      );
-      
-      setSearchResults(mockResults);
-      setIsSearching(false);
-    }, 500);
+
+    // Set up the debounced search
+    const timeoutId = setTimeout(async () => {
+      try {
+        const response = await securitiesService.quickSearch(searchQuery, 10, user);
+        setSearchResults(response.results);
+      } catch (error) {
+        console.error('Error searching securities:', error);
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 1500); // Wait 1.5 seconds after user stops typing
+
+    // Cleanup function to cancel the previous timeout
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [searchQuery, user]);
+
+  // Simple function to update search query (no longer handles search directly)
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
   };
 
-  const handleAddToWatchlist = (item: any) => {
+  const handleAddToWatchlist = (item: Security) => {
     // Check if already in watchlist
     if (watchlistStocks.some(stock => stock.symbol === item.symbol)) {
       console.log('Stock already in watchlist:', item.symbol);
@@ -213,18 +106,18 @@ export default function Watchlist() {
       return;
     }
 
-    // Create new stock data from search result
+    // Create new stock data from security API result
     const newStock: StockData = {
       symbol: item.symbol,
       companyName: item.name,
-      currentPrice: parseFloat(item.price.replace('$', '').replace(',', '')),
-      change: parseFloat(item.change.replace('+', '').replace('%', '')),
-      changePercent: parseFloat(item.change.replace('+', '').replace('%', '')),
-      volume: Math.floor(Math.random() * 50000000) + 1000000,
-      marketCap: `$${Math.floor(Math.random() * 2000)}B`,
-      peRatio: Math.floor(Math.random() * 50) + 10,
-      weekHigh52: parseFloat(item.price.replace('$', '').replace(',', '')) * 1.3,
-      weekLow52: parseFloat(item.price.replace('$', '').replace(',', '')) * 0.7,
+      currentPrice: item.current_price || 0,
+      change: 0, // We don't have change data from list endpoint
+      changePercent: item.day_change_percent || 0,
+      volume: Math.floor(Math.random() * 50000000) + 1000000, // Mock volume for now
+      marketCap: item.market_cap ? `$${(item.market_cap / 1000000000).toFixed(1)}B` : 'N/A',
+      peRatio: Math.floor(Math.random() * 50) + 10, // Mock P/E ratio for now
+      weekHigh52: (item.current_price || 0) * 1.3, // Mock 52-week high
+      weekLow52: (item.current_price || 0) * 0.7, // Mock 52-week low
       lastUpdated: new Date().toISOString(),
       news: [
         {
@@ -420,7 +313,6 @@ export default function Watchlist() {
                   placeholder="Search for stocks, ETFs, bonds..."
                   value={searchQuery}
                   onChange={(e) => {
-                    setSearchQuery(e.target.value);
                     handleSearch(e.target.value);
                   }}
                   borderRadius="12px"
@@ -495,11 +387,15 @@ export default function Watchlist() {
                                       {item.symbol}
                                     </Text>
                                     <Badge
-                                      colorScheme={item.type === 'Stock' ? 'blue' : 'green'}
+                                      colorScheme={
+                                        item.security_type === 'CS' ? 'blue' : 
+                                        item.security_type === 'ETF' ? 'green' : 'purple'
+                                      }
                                       fontSize="xs"
                                       borderRadius="4px"
                                     >
-                                      {item.type}
+                                      {item.security_type === 'CS' ? 'Stock' : 
+                                       item.security_type === 'ETF' ? 'ETF' : 'ADR'}
                                     </Badge>
                                   </HStack>
                                   <Text fontSize="sm" color={gray}>
@@ -509,13 +405,20 @@ export default function Watchlist() {
                               </HStack>
                               <VStack align="end" spacing="2px">
                                 <Text fontWeight="600" color={textColor}>
-                                  {item.price}
+                                  {item.current_price ? `$${item.current_price.toFixed(2)}` : 'N/A'}
                                 </Text>
                                 <Text
                                   fontSize="sm"
-                                  color={item.change.startsWith('+') ? 'green.500' : 'red.500'}
+                                  color={
+                                    item.day_change_percent 
+                                      ? item.day_change_percent >= 0 ? 'green.500' : 'red.500'
+                                      : gray
+                                  }
                                 >
-                                  {item.change}
+                                  {item.day_change_percent 
+                                    ? `${item.day_change_percent >= 0 ? '+' : ''}${item.day_change_percent.toFixed(2)}%`
+                                    : 'N/A'
+                                  }
                                 </Text>
                               </VStack>
                             </Flex>
