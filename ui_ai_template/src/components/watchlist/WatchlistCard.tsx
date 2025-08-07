@@ -21,6 +21,8 @@ import {
   StatNumber,
   StatHelpText,
   StatArrow,
+  UnorderedList,
+  ListItem,
 } from '@chakra-ui/react';
 import {
   MdExpandMore,
@@ -29,8 +31,6 @@ import {
   MdTrendingDown,
   MdShowChart,
   MdRemove,
-  MdNotifications,
-  MdShare,
 } from 'react-icons/md';
 import { useState } from 'react';
 
@@ -49,6 +49,10 @@ export interface StockData {
   lastUpdated: string;
   news?: NewsItem[];
   upcomingEvents?: UpcomingEvent[];
+  executiveSummary?: string;
+  keyHighlights?: string[];
+  positiveCatalysts?: string[];
+  riskFactors?: string[];
 }
 
 interface NewsItem {
@@ -320,6 +324,133 @@ export function WatchlistCard({ stock, onRemove }: WatchlistCardProps) {
               </Stat>
             </SimpleGrid>
 
+            {/* Executive Summary Section */}
+            {stock.executiveSummary && (
+              <Box mb="20px">
+                <Text
+                  fontWeight="600"
+                  color={textColor}
+                  fontSize="sm"
+                  mb="10px"
+                >
+                  Executive Summary
+                </Text>
+                <Box
+                  p="12px"
+                  borderRadius="8px"
+                  bg={hoverBg}
+                >
+                  <Text
+                    fontSize="sm"
+                    color={textColor}
+                    lineHeight="1.5"
+                  >
+                    {stock.executiveSummary}
+                  </Text>
+                </Box>
+              </Box>
+            )}
+
+            {/* Key Highlights Section */}
+            {stock.keyHighlights && stock.keyHighlights.length > 0 && (
+              <Box mb="20px">
+                <Text
+                  fontWeight="600"
+                  color={textColor}
+                  fontSize="sm"
+                  mb="10px"
+                >
+                  Key Highlights
+                </Text>
+                <Box
+                  p="12px"
+                  borderRadius="8px"
+                  bg={hoverBg}
+                >
+                  <UnorderedList spacing="4px">
+                    {stock.keyHighlights.map((highlight, index) => (
+                      <ListItem
+                        key={index}
+                        fontSize="sm"
+                        color={textColor}
+                        lineHeight="1.5"
+                      >
+                        {highlight}
+                      </ListItem>
+                    ))}
+                  </UnorderedList>
+                </Box>
+              </Box>
+            )}
+
+            {/* Positive Catalysts & Risk Factors Section */}
+            {((stock.positiveCatalysts && stock.positiveCatalysts.length > 0) || 
+              (stock.riskFactors && stock.riskFactors.length > 0)) && (
+              <Box mb="20px">
+                <SimpleGrid columns={2} spacing="15px">
+                  {/* Positive Catalysts Column */}
+                  {stock.positiveCatalysts && stock.positiveCatalysts.length > 0 && (
+                    <Box
+                      p="12px"
+                      borderRadius="8px"
+                      bg={hoverBg}
+                    >
+                      <HStack justify="space-between" mb="8px">
+                        <Badge
+                          size="sm"
+                          colorScheme="green"
+                        >
+                          Positive Catalysts
+                        </Badge>
+                      </HStack>
+                      <UnorderedList spacing="4px">
+                        {stock.positiveCatalysts.map((catalyst, index) => (
+                          <ListItem
+                            key={index}
+                            fontSize="sm"
+                            color={textColor}
+                            lineHeight="1.5"
+                          >
+                            {catalyst}
+                          </ListItem>
+                        ))}
+                      </UnorderedList>
+                    </Box>
+                  )}
+
+                  {/* Risk Factors Column */}
+                  {stock.riskFactors && stock.riskFactors.length > 0 && (
+                    <Box
+                      p="12px"
+                      borderRadius="8px"
+                      bg={hoverBg}
+                    >
+                      <HStack justify="space-between" mb="8px">
+                        <Badge
+                          size="sm"
+                          colorScheme="red"
+                        >
+                          Risk Factors
+                        </Badge>
+                      </HStack>
+                      <UnorderedList spacing="4px">
+                        {stock.riskFactors.map((risk, index) => (
+                          <ListItem
+                            key={index}
+                            fontSize="sm"
+                            color={textColor}
+                            lineHeight="1.5"
+                          >
+                            {risk}
+                          </ListItem>
+                        ))}
+                      </UnorderedList>
+                    </Box>
+                  )}
+                </SimpleGrid>
+              </Box>
+            )}
+
             {/* Latest News Section */}
             {stock.news && stock.news.length > 0 && (
               <Box mb="20px">
@@ -380,56 +511,39 @@ export function WatchlistCard({ stock, onRemove }: WatchlistCardProps) {
                 >
                   What to Watch
                 </Text>
-                <VStack spacing="8px" align="stretch">
-                  {stock.upcomingEvents.map((event, index) => (
-                    <HStack key={index} spacing="10px">
-                      <Badge
-                        colorScheme={
-                          event.type === 'earnings' ? 'purple' :
-                          event.type === 'dividend' ? 'green' : 'blue'
-                        }
-                        fontSize="xs"
-                        px="8px"
-                        py="2px"
-                        borderRadius="6px"
-                      >
-                        {event.type.toUpperCase()}
-                      </Badge>
-                      <Text fontSize="sm" color={textColor} flex="1">
-                        {event.description}
-                      </Text>
-                      <Text fontSize="xs" color={gray}>
-                        {event.date}
-                      </Text>
-                    </HStack>
-                  ))}
-                </VStack>
+                <Box
+                  p="12px"
+                  borderRadius="8px"
+                  bg={hoverBg}
+                >
+                  <VStack spacing="8px" align="stretch">
+                    {stock.upcomingEvents.map((event, index) => (
+                      <HStack key={index} spacing="10px">
+                        <Badge
+                          size="sm"
+                          colorScheme={
+                            event.type === 'earnings' ? 'purple' :
+                            event.type === 'dividend' ? 'green' : 'blue'
+                          }
+                        >
+                          {event.type.toUpperCase()}
+                        </Badge>
+                        <Text fontSize="sm" color={textColor} flex="1">
+                          {event.description}
+                        </Text>
+                        <Text fontSize="xs" color={gray}>
+                          {event.date}
+                        </Text>
+                      </HStack>
+                    ))}
+                  </VStack>
+                </Box>
               </Box>
             )}
 
             {/* Action Buttons */}
-            <HStack spacing="8px" justify="flex-end">
-              <Button
-                size="sm"
-                variant="outline"
-                leftIcon={<Icon as={MdNotifications} />}
-                borderColor={borderColor}
-                color={textColor}
-                _hover={{ borderColor: brandColor, color: brandColor }}
-              >
-                Alerts
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                leftIcon={<Icon as={MdShare} />}
-                borderColor={borderColor}
-                color={textColor}
-                _hover={{ borderColor: brandColor, color: brandColor }}
-              >
-                Share
-              </Button>
-              {onRemove && (
+            {onRemove && (
+              <HStack spacing="8px" justify="flex-end">
                 <Button
                   size="sm"
                   variant="outline"
@@ -444,8 +558,8 @@ export function WatchlistCard({ stock, onRemove }: WatchlistCardProps) {
                 >
                   Remove
                 </Button>
-              )}
-            </HStack>
+              </HStack>
+            )}
           </Box>
         </Collapse>
       </CardBody>
