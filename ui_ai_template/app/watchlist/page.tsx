@@ -30,9 +30,10 @@ import {
 import { MdBookmark, MdAdd, MdTrendingUp, MdSearch, MdShowChart } from 'react-icons/md';
 import { useState, useEffect, useCallback } from 'react';
 import { WatchlistCard, StockData } from '@/components/watchlist/WatchlistCard';
-import { securitiesService } from '@/services/api';
-import { Security } from '@/types/api';
+import { securitiesService, watchlistService } from '@/services/api';
+import { Security, WatchlistItem } from '@/types/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { transformWatchlistToStockDataArray, findWatchlistItemIdBySymbol } from '@/utils/watchlistTransform';
 
 export default function Watchlist() {
   // Auth state
@@ -46,6 +47,9 @@ export default function Watchlist() {
   
   // Watchlist state
   const [watchlistStocks, setWatchlistStocks] = useState<StockData[]>([]);
+  const [watchlistItems, setWatchlistItems] = useState<WatchlistItem[]>([]);
+  const [isLoadingWatchlist, setIsLoadingWatchlist] = useState(true);
+  const [isAddingToWatchlist, setIsAddingToWatchlist] = useState(false);
 
   // Colors
   const textColor = useColorModeValue('navy.700', 'white');
@@ -55,10 +59,59 @@ export default function Watchlist() {
   const borderColor = useColorModeValue('gray.200', 'whiteAlpha.200');
   const modalBg = useColorModeValue('white', 'navy.800');
 
+  // Fetch user's watchlist from server
+  const fetchWatchlist = useCallback(async () => {
+    if (!user) {
+      setIsLoadingWatchlist(false);
+      return;
+    }
+
+    try {
+      setIsLoadingWatchlist(true);
+      const response = await watchlistService.getUserWatchlist(user);
+      setWatchlistItems(response.results);
+      
+      // Transform to UI format
+      const stockData = transformWatchlistToStockDataArray(response.results);
+      setWatchlistStocks(stockData);
+    } catch (error) {
+      console.error('Error fetching watchlist:', error);
+      // Keep empty state on error
+      setWatchlistItems([]);
+      setWatchlistStocks([]);
+    } finally {
+      setIsLoadingWatchlist(false);
+    }
+  }, [user]);
+
+  // Load watchlist on component mount and when user changes
+  useEffect(() => {
+    fetchWatchlist();
+  }, [fetchWatchlist]);
 
   // Remove stock from watchlist
-  const handleRemoveStock = (symbol: string) => {
-    setWatchlistStocks(prev => prev.filter(stock => stock.symbol !== symbol));
+  const handleRemoveStock = async (symbol: string) => {
+    if (!user) return;
+
+    // Find the watchlist item ID
+    const watchlistItemId = findWatchlistItemIdBySymbol(watchlistItems, symbol);
+    if (!watchlistItemId) {
+      console.error('Could not find watchlist item ID for symbol:', symbol);
+      return;
+    }
+
+    try {
+      // Optimistically remove from UI
+      setWatchlistStocks(prev => prev.filter(stock => stock.symbol !== symbol));
+      setWatchlistItems(prev => prev.filter(item => item.security.symbol !== symbol));
+
+      // Call server API
+      await watchlistService.removeFromWatchlist(watchlistItemId, user);
+    } catch (error) {
+      console.error('Error removing from watchlist:', error);
+      // Revert the optimistic update on error
+      fetchWatchlist();
+    }
   };
 
   // Debounced search with useEffect
@@ -96,7 +149,9 @@ export default function Watchlist() {
     setSearchQuery(query);
   };
 
-  const handleAddToWatchlist = (item: Security) => {
+  const handleAddToWatchlist = async (item: Security) => {
+    if (!user) return;
+
     // Check if already in watchlist
     if (watchlistStocks.some(stock => stock.symbol === item.symbol)) {
       console.log('Stock already in watchlist:', item.symbol);
@@ -106,41 +161,66 @@ export default function Watchlist() {
       return;
     }
 
-    // Create new stock data from security API result
-    const newStock: StockData = {
-      symbol: item.symbol,
-      companyName: item.name,
-      currentPrice: item.current_price || 0,
-      change: 0, // We don't have change data from list endpoint
-      changePercent: item.day_change_percent || 0,
-      volume: Math.floor(Math.random() * 50000000) + 1000000, // Mock volume for now
-      marketCap: item.market_cap ? `$${(item.market_cap / 1000000000).toFixed(1)}B` : 'N/A',
-      peRatio: Math.floor(Math.random() * 50) + 10, // Mock P/E ratio for now
-      weekHigh52: (item.current_price || 0) * 1.3, // Mock 52-week high
-      weekLow52: (item.current_price || 0) * 0.7, // Mock 52-week low
-      lastUpdated: new Date().toISOString(),
-      news: [
-        {
-          id: Date.now().toString(),
-          headline: `${item.name} shows strong market performance`,
-          source: 'Market News',
-          publishedAt: '1 hour ago',
-          sentiment: 'positive'
-        }
-      ],
-      upcomingEvents: [
-        {
-          type: 'earnings',
-          date: 'Feb 15, 2024',
-          description: 'Next Earnings Report'
-        }
-      ]
-    };
+    try {
+      setIsAddingToWatchlist(true);
+      
+      // Call server API to add to watchlist
+      const response = await watchlistService.addToWatchlist(item.symbol, user);
+      
+      // Update local state with the new item
+      const newWatchlistItem = response;
+      setWatchlistItems(prev => [...prev, newWatchlistItem]);
+      
+      // Transform using the utility function for consistency
+      const newStockData: StockData = {
+        symbol: item.symbol,
+        companyName: item.name,
+        currentPrice: item.current_price || 0,
+        change: item.day_change || 0,
+        changePercent: item.day_change_percent || 0,
+        volume: item.volume || 0,
+        marketCap: item.market_cap ? `$${(item.market_cap / 1000000000).toFixed(1)}B` : 'N/A',
+        peRatio: item.pe_ratio || 0,
+        weekHigh52: item.week_52_high || (item.current_price || 0),
+        weekLow52: item.week_52_low || (item.current_price || 0),
+        lastUpdated: response.added_at,
+        news: item.news_summary ? [
+          {
+            id: `${response.id}-news-1`,
+            headline: item.news_summary.substring(0, 100) + (item.news_summary.length > 100 ? '...' : ''),
+            source: 'Market News',
+            publishedAt: '1 hour ago',
+            sentiment: 'positive'
+          }
+        ] : [
+          {
+            id: `${response.id}-news-1`,
+            headline: `${item.name} shows strong market performance`,
+            source: 'Market News',
+            publishedAt: '1 hour ago',
+            sentiment: 'positive'
+          }
+        ],
+        upcomingEvents: [
+          {
+            type: 'earnings',
+            date: 'Feb 15, 2024',
+            description: 'Next Earnings Report'
+          }
+        ]
+      };
 
-    setWatchlistStocks(prev => [...prev, newStock]);
-    onClose();
-    setSearchQuery('');
-    setSearchResults([]);
+      setWatchlistStocks(prev => [...prev, newStockData]);
+      
+      onClose();
+      setSearchQuery('');
+      setSearchResults([]);
+    } catch (error) {
+      console.error('Error adding to watchlist:', error);
+      // Handle error - you could show a toast notification here
+    } finally {
+      setIsAddingToWatchlist(false);
+    }
   };
 
   return (
@@ -184,13 +264,24 @@ export default function Watchlist() {
               color: 'white'
             }}
             onClick={onOpen}
+            isDisabled={isLoadingWatchlist}
           >
             Add Investment
           </Button>
         </Flex>
 
         {/* Watchlist Content */}
-        {watchlistStocks.length === 0 ? (
+        {isLoadingWatchlist ? (
+          /* Loading State */
+          <Flex justify="center" align="center" h="60vh">
+            <VStack spacing="20px">
+              <Spinner color={brandColor} size="xl" />
+              <Text color={textColor} fontSize="lg" fontWeight="600">
+                Loading your watchlist...
+              </Text>
+            </VStack>
+          </Flex>
+        ) : watchlistStocks.length === 0 ? (
           /* Empty State */
           <Flex
             direction="column"
@@ -327,9 +418,14 @@ export default function Watchlist() {
 
               {/* Search Results */}
               <Box maxH="400px" overflowY="auto">
-                {isSearching && (
+                {(isSearching || isAddingToWatchlist) && (
                   <Flex justify="center" py="40px">
-                    <Spinner color={brandColor} size="lg" />
+                    <VStack spacing="10px">
+                      <Spinner color={brandColor} size="lg" />
+                      <Text color={gray} fontSize="sm">
+                        {isSearching ? 'Searching...' : 'Adding to watchlist...'}
+                      </Text>
+                    </VStack>
                   </Flex>
                 )}
 
@@ -341,7 +437,7 @@ export default function Watchlist() {
                   </Flex>
                 )}
 
-                {!isSearching && searchResults.length > 0 && (
+                {!isSearching && !isAddingToWatchlist && searchResults.length > 0 && (
                   <List spacing="10px">
                     {searchResults.map((item, index) => (
                       <ListItem key={index}>
@@ -429,7 +525,7 @@ export default function Watchlist() {
                   </List>
                 )}
 
-                {searchQuery.length < 2 && !isSearching && (
+                {searchQuery.length < 2 && !isSearching && !isAddingToWatchlist && (
                   <Flex justify="center" py="40px">
                     <Text color={gray} fontSize="sm" textAlign="center">
                       Type at least 2 characters to search for investments

@@ -84,8 +84,21 @@ export interface Security {
   security_type: 'CS' | 'ETF' | 'ADRC';
   exchange: string;
   current_price?: number | null;
+  previous_close?: number | null;
+  day_change?: number | null;
   day_change_percent?: number | null;
   market_cap?: number | null;
+  pe_ratio?: number | null;
+  eps?: number | null;
+  dividend_yield?: number | null;
+  volume?: number | null;
+  avg_volume?: number | null;
+  week_52_high?: number | null;
+  week_52_low?: number | null;
+  book_value?: number | null;
+  debt_to_equity?: number | null;
+  roe?: number | null;
+  news_summary?: string | null;
   logo_url: string;
   is_active: boolean;
 }
@@ -133,3 +146,21 @@ export interface SecuritySearchParams {
   offset?: number;
   ordering?: string;
 }
+
+// Watchlist Types
+export interface WatchlistItem {
+  id: number;
+  security: Security;
+  added_at: string;
+}
+
+export interface WatchlistListResponse {
+  count: number;
+  results: WatchlistItem[];
+}
+
+export interface WatchlistCreateRequest {
+  security_symbol: string;
+}
+
+export interface WatchlistCreateResponse extends WatchlistItem {}
