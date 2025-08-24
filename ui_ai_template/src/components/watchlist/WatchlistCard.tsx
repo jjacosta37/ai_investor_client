@@ -23,6 +23,7 @@ import {
   StatArrow,
   UnorderedList,
   ListItem,
+  Tooltip,
 } from '@chakra-ui/react';
 import {
   MdExpandMore,
@@ -48,6 +49,8 @@ export interface StockData {
   weekLow52: number;
   lastUpdated: string;
   news?: NewsItem[];
+  newsSummary?: string;
+  sentimentRationale?: string;
   upcomingEvents?: UpcomingEvent[];
   executiveSummary?: string;
   keyHighlights?: string[];
@@ -61,6 +64,9 @@ interface NewsItem {
   source: string;
   publishedAt: string;
   sentiment: 'positive' | 'negative' | 'neutral';
+  summary?: string;
+  url?: string;
+  impactLevel?: 'High' | 'Medium' | 'Low';
 }
 
 interface UpcomingEvent {
@@ -217,7 +223,7 @@ export function WatchlistCard({ stock, onRemove }: WatchlistCardProps) {
           </Flex>
 
           {/* Right Side - News Summary with Expanded Width */}
-          {stock.news && stock.news.length > 0 && (
+          {(stock.newsSummary || (stock.news && stock.news.length > 0)) && (
             <Box flex="1" maxW="600px">
               <Box
                 p="12px"
@@ -232,15 +238,26 @@ export function WatchlistCard({ stock, onRemove }: WatchlistCardProps) {
                   <Text fontSize="sm" color={textColor} fontWeight="600">
                     Summary of latest news
                   </Text>
-                  <Badge
-                    size="sm"
-                    colorScheme={
-                      stock.news[0].sentiment === 'positive' ? 'green' :
-                      stock.news[0].sentiment === 'negative' ? 'red' : 'gray'
-                    }
+                  <Tooltip
+                    label={stock.sentimentRationale || 'No rationale available'}
+                    placement="top"
+                    hasArrow
+                    openDelay={300}
+                    closeDelay={150}
+                    isDisabled={!stock.sentimentRationale}
                   >
-                    {stock.news[0].sentiment}
-                  </Badge>
+                    <Badge
+                      size="sm"
+                      colorScheme={
+                        (stock.news && stock.news.length > 0 && stock.news[0].sentiment === 'positive') ? 'green' :
+                        (stock.news && stock.news.length > 0 && stock.news[0].sentiment === 'negative') ? 'red' : 'gray'
+                      }
+                      cursor={stock.sentimentRationale ? 'help' : 'default'}
+                    >
+                      {(stock.news && stock.news.length > 0 && stock.news[0].sentiment === 'positive') ? 'Bullish' :
+                       (stock.news && stock.news.length > 0 && stock.news[0].sentiment === 'negative') ? 'Bearish' : 'Neutral'}
+                    </Badge>
+                  </Tooltip>
                 </HStack>
                 <Text
                   fontSize="xs"
@@ -249,9 +266,13 @@ export function WatchlistCard({ stock, onRemove }: WatchlistCardProps) {
                   noOfLines={3}
                   lineHeight="1.3"
                 >
-                  {stock.news.length > 1 
-                    ? `${stock.news[0].headline} • ${stock.news[1]?.headline || ''}`
-                    : stock.news[0].headline
+                  {stock.newsSummary || 
+                    (stock.news && stock.news.length > 1 
+                      ? `${stock.news[0].headline} • ${stock.news[1]?.headline || ''}`
+                      : stock.news && stock.news.length > 0 
+                        ? stock.news[0].headline
+                        : 'No news summary available'
+                    )
                   }
                 </Text>
               </Box>
@@ -462,19 +483,36 @@ export function WatchlistCard({ stock, onRemove }: WatchlistCardProps) {
                 >
                   Latest News
                 </Text>
-                <VStack spacing="8px" align="stretch">
+                <VStack spacing="12px" align="stretch">
                   {stock.news.slice(0, 3).map((newsItem) => (
                     <Box
                       key={newsItem.id}
-                      p="12px"
-                      borderRadius="8px"
+                      p="16px"
+                      borderRadius="12px"
                       bg={hoverBg}
-                      cursor="pointer"
-                      _hover={{ opacity: 0.8 }}
+                      border="1px solid"
+                      borderColor={borderColor}
+                      cursor={newsItem.url ? "pointer" : "default"}
+                      transition="all 0.2s ease"
+                      _hover={newsItem.url ? {
+                        borderColor: brandColor,
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                        transform: 'translateY(-1px)'
+                      } : {}}
+                      onClick={newsItem.url ? () => window.open(newsItem.url, '_blank', 'noopener,noreferrer') : undefined}
                     >
-                      <HStack justify="space-between" mb="4px">
-                        <Text fontSize="xs" color={gray}>
-                          {newsItem.source}
+                      {/* Header with Title and Sentiment */}
+                      <Flex justify="space-between" align="flex-start" mb="8px">
+                        <Text
+                          fontSize="md"
+                          color={textColor}
+                          fontWeight="600"
+                          lineHeight="1.4"
+                          noOfLines={2}
+                          flex="1"
+                          mr="8px"
+                        >
+                          {newsItem.headline}
                         </Text>
                         <Badge
                           size="sm"
@@ -482,18 +520,46 @@ export function WatchlistCard({ stock, onRemove }: WatchlistCardProps) {
                             newsItem.sentiment === 'positive' ? 'green' :
                             newsItem.sentiment === 'negative' ? 'red' : 'gray'
                           }
+                          flexShrink={0}
                         >
-                          {newsItem.sentiment}
+                          {newsItem.sentiment === 'positive' ? 'Bullish' :
+                           newsItem.sentiment === 'negative' ? 'Bearish' : 'Neutral'}
                         </Badge>
-                      </HStack>
-                      <Text
-                        fontSize="sm"
-                        color={textColor}
-                        fontWeight="500"
-                        noOfLines={2}
-                      >
-                        {newsItem.headline}
-                      </Text>
+                      </Flex>
+
+                      {/* Summary Content */}
+                      {newsItem.summary && (
+                        <Text
+                          fontSize="sm"
+                          color={textColor}
+                          lineHeight="1.5"
+                          noOfLines={3}
+                          mb="8px"
+                        >
+                          {newsItem.summary}
+                        </Text>
+                      )}
+
+                      {/* Footer with Source and Date */}
+                      <Flex justify="space-between" align="center">
+                        <Box>
+                          {newsItem.impactLevel && (
+                            <Badge
+                              size="xs"
+                              colorScheme={
+                                newsItem.impactLevel === 'High' ? 'red' :
+                                newsItem.impactLevel === 'Medium' ? 'orange' : 'gray'
+                              }
+                              mr="6px"
+                            >
+                              {newsItem.impactLevel} Impact
+                            </Badge>
+                          )}
+                        </Box>
+                        <Text fontSize="xs" color={gray} textAlign="right">
+                          {newsItem.source} • {newsItem.publishedAt}
+                        </Text>
+                      </Flex>
                     </Box>
                   ))}
                 </VStack>

@@ -147,11 +147,54 @@ export interface SecuritySearchParams {
   ordering?: string;
 }
 
+// News and Analysis Types
+export interface OverallSentiment {
+  sentiment: 'Bullish' | 'Bearish' | 'Neutral';
+  rationale: string;
+  confidence_level?: 'High' | 'Medium' | 'Low' | null;
+}
+
+export interface SecurityNewsSummary {
+  executive_summary: string;
+  summary: string;
+  positive_catalysts: string;
+  risk_factors: string;
+  overall_sentiment: OverallSentiment;
+  key_metrics: Record<string, any>;
+  disclaimer: string;
+  updated_at: string;
+}
+
+export interface NewsItem {
+  headline: string;
+  date: string;
+  source: string;
+  url: string;
+  impact_level: 'High' | 'Medium' | 'Low';
+  summary: string;
+}
+
+export interface UpcomingEvent {
+  event: string;
+  date: string;
+  category: 'Earnings' | 'Corporate_Actions' | 'Regulatory' | 'Strategic' | 'Industry' | 'Economic';
+  importance: 'High' | 'Medium' | 'Low';
+}
+
+export interface KeyHighlight {
+  highlight: string;
+  order: number;
+}
+
 // Watchlist Types
 export interface WatchlistItem {
   id: number;
   security: Security;
   added_at: string;
+  security_news_summary?: SecurityNewsSummary | null;
+  latest_news?: NewsItem[];
+  key_highlights?: KeyHighlight[];
+  upcoming_events?: UpcomingEvent[];
 }
 
 export interface WatchlistListResponse {
