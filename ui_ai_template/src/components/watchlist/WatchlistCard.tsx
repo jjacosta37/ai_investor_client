@@ -24,6 +24,7 @@ import {
   UnorderedList,
   ListItem,
   Tooltip,
+  Image,
 } from '@chakra-ui/react';
 import {
   MdExpandMore,
@@ -66,6 +67,7 @@ interface NewsItem {
   sentiment: 'positive' | 'negative' | 'neutral';
   summary?: string;
   url?: string;
+  favicon?: string;
   impactLevel?: 'High' | 'Medium' | 'Low';
 }
 
@@ -166,25 +168,13 @@ export function WatchlistCard({ stock, onRemove }: WatchlistCardProps) {
 
               {/* Symbol and Company */}
               <VStack align="start" spacing="2px" flex="1" minW="0">
-                <HStack spacing="8px">
-                  <Text
-                    fontWeight="700"
-                    color={textColor}
-                    fontSize="lg"
-                  >
-                    {stock.symbol}
-                  </Text>
-                  {stock.news && stock.news.length > 0 && (
-                    <Badge
-                      colorScheme="red"
-                      fontSize="xs"
-                      borderRadius="4px"
-                      px="6px"
-                    >
-                      NEWS
-                    </Badge>
-                  )}
-                </HStack>
+                <Text
+                  fontWeight="700"
+                  color={textColor}
+                  fontSize="lg"
+                >
+                  {stock.symbol}
+                </Text>
                 <Text
                   fontSize="sm"
                   color={gray}
@@ -364,7 +354,7 @@ export function WatchlistCard({ stock, onRemove }: WatchlistCardProps) {
                   <Text
                     fontSize="sm"
                     color={textColor}
-                    lineHeight="1.5"
+                    lineHeight="1.7"
                   >
                     {stock.executiveSummary}
                   </Text>
@@ -424,13 +414,13 @@ export function WatchlistCard({ stock, onRemove }: WatchlistCardProps) {
                           Positive Catalysts
                         </Badge>
                       </HStack>
-                      <UnorderedList spacing="4px">
+                      <UnorderedList spacing="6px">
                         {stock.positiveCatalysts.map((catalyst, index) => (
                           <ListItem
                             key={index}
                             fontSize="sm"
                             color={textColor}
-                            lineHeight="1.5"
+                            lineHeight="1.7"
                           >
                             {catalyst}
                           </ListItem>
@@ -454,13 +444,13 @@ export function WatchlistCard({ stock, onRemove }: WatchlistCardProps) {
                           Risk Factors
                         </Badge>
                       </HStack>
-                      <UnorderedList spacing="4px">
+                      <UnorderedList spacing="6px">
                         {stock.riskFactors.map((risk, index) => (
                           <ListItem
                             key={index}
                             fontSize="sm"
                             color={textColor}
-                            lineHeight="1.5"
+                            lineHeight="1.7"
                           >
                             {risk}
                           </ListItem>
@@ -501,19 +491,36 @@ export function WatchlistCard({ stock, onRemove }: WatchlistCardProps) {
                       } : {}}
                       onClick={newsItem.url ? () => window.open(newsItem.url, '_blank', 'noopener,noreferrer') : undefined}
                     >
-                      {/* Header with Title and Sentiment */}
+                      {/* Header with Favicon, Title and Sentiment */}
                       <Flex justify="space-between" align="flex-start" mb="8px">
-                        <Text
-                          fontSize="md"
-                          color={textColor}
-                          fontWeight="600"
-                          lineHeight="1.4"
-                          noOfLines={2}
-                          flex="1"
-                          mr="8px"
-                        >
-                          {newsItem.headline}
-                        </Text>
+                        <Flex align="flex-start" flex="1" mr="8px">
+                          {newsItem.favicon && (
+                            <Image
+                              src={newsItem.favicon}
+                              alt={`${newsItem.source} favicon`}
+                              w="20px"
+                              h="20px"
+                              mr="8px"
+                              mt="2px"
+                              borderRadius="2px"
+                              flexShrink={0}
+                              fallback={<Box w="20px" h="20px" />}
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          )}
+                          <Text
+                            fontSize="md"
+                            color={textColor}
+                            fontWeight="600"
+                            lineHeight="1.4"
+                            noOfLines={2}
+                            flex="1"
+                          >
+                            {newsItem.headline}
+                          </Text>
+                        </Flex>
                         <Badge
                           size="sm"
                           colorScheme={
@@ -541,21 +548,7 @@ export function WatchlistCard({ stock, onRemove }: WatchlistCardProps) {
                       )}
 
                       {/* Footer with Source and Date */}
-                      <Flex justify="space-between" align="center">
-                        <Box>
-                          {newsItem.impactLevel && (
-                            <Badge
-                              size="xs"
-                              colorScheme={
-                                newsItem.impactLevel === 'High' ? 'red' :
-                                newsItem.impactLevel === 'Medium' ? 'orange' : 'gray'
-                              }
-                              mr="6px"
-                            >
-                              {newsItem.impactLevel} Impact
-                            </Badge>
-                          )}
-                        </Box>
+                      <Flex justify="flex-end" align="center">
                         <Text fontSize="xs" color={gray} textAlign="right">
                           {newsItem.source} • {newsItem.publishedAt}
                         </Text>

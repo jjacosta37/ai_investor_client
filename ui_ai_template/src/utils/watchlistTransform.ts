@@ -74,6 +74,7 @@ export function transformWatchlistItemToStockData(item: WatchlistItem): StockDat
       sentiment: convertSentiment(newsSummary?.overall_sentiment?.sentiment || 'neutral'),
       summary: newsItem.summary,
       url: newsItem.url,
+      favicon: newsItem.favicon,
       impactLevel: newsItem.impact_level
     })),
     

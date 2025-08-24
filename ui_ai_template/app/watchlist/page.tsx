@@ -27,24 +27,34 @@ import {
   Badge,
   SimpleGrid,
 } from '@chakra-ui/react';
-import { MdBookmark, MdAdd, MdTrendingUp, MdSearch, MdShowChart } from 'react-icons/md';
+import {
+  MdBookmark,
+  MdAdd,
+  MdTrendingUp,
+  MdSearch,
+  MdShowChart,
+} from 'react-icons/md';
 import { useState, useEffect, useCallback } from 'react';
 import { WatchlistCard, StockData } from '@/components/watchlist/WatchlistCard';
 import { securitiesService, watchlistService } from '@/services/api';
 import { Security, WatchlistItem } from '@/types/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { transformWatchlistToStockDataArray, transformWatchlistItemToStockData, findWatchlistItemIdBySymbol } from '@/utils/watchlistTransform';
+import {
+  transformWatchlistToStockDataArray,
+  transformWatchlistItemToStockData,
+  findWatchlistItemIdBySymbol,
+} from '@/utils/watchlistTransform';
 
 export default function Watchlist() {
   // Auth state
   const { user } = useAuth();
-  
+
   // Modal state
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<Security[]>([]);
-  
+
   // Watchlist state
   const [watchlistStocks, setWatchlistStocks] = useState<StockData[]>([]);
   const [watchlistItems, setWatchlistItems] = useState<WatchlistItem[]>([]);
@@ -70,7 +80,7 @@ export default function Watchlist() {
       setIsLoadingWatchlist(true);
       const response = await watchlistService.getUserWatchlist(user);
       setWatchlistItems(response.results);
-      
+
       // Transform to UI format
       const stockData = transformWatchlistToStockDataArray(response.results);
       setWatchlistStocks(stockData);
@@ -102,8 +112,12 @@ export default function Watchlist() {
 
     try {
       // Optimistically remove from UI
-      setWatchlistStocks(prev => prev.filter(stock => stock.symbol !== symbol));
-      setWatchlistItems(prev => prev.filter(item => item.security.symbol !== symbol));
+      setWatchlistStocks((prev) =>
+        prev.filter((stock) => stock.symbol !== symbol),
+      );
+      setWatchlistItems((prev) =>
+        prev.filter((item) => item.security.symbol !== symbol),
+      );
 
       // Call server API
       await watchlistService.removeFromWatchlist(watchlistItemId, user);
@@ -128,7 +142,11 @@ export default function Watchlist() {
     // Set up the debounced search
     const timeoutId = setTimeout(async () => {
       try {
-        const response = await securitiesService.quickSearch(searchQuery, 10, user);
+        const response = await securitiesService.quickSearch(
+          searchQuery,
+          10,
+          user,
+        );
         setSearchResults(response.results);
       } catch (error) {
         console.error('Error searching securities:', error);
@@ -153,7 +171,7 @@ export default function Watchlist() {
     if (!user) return;
 
     // Check if already in watchlist
-    if (watchlistStocks.some(stock => stock.symbol === item.symbol)) {
+    if (watchlistStocks.some((stock) => stock.symbol === item.symbol)) {
       console.log('Stock already in watchlist:', item.symbol);
       onClose();
       setSearchQuery('');
@@ -163,18 +181,18 @@ export default function Watchlist() {
 
     try {
       setIsAddingToWatchlist(true);
-      
+
       // Call server API to add to watchlist
       const response = await watchlistService.addToWatchlist(item.symbol, user);
-      
+
       // Update local state with the new item
       const newWatchlistItem = response;
-      setWatchlistItems(prev => [...prev, newWatchlistItem]);
-      
+      setWatchlistItems((prev) => [...prev, newWatchlistItem]);
+
       // Transform using the utility function for consistency
       const newStockData = transformWatchlistItemToStockData(newWatchlistItem);
-      setWatchlistStocks(prev => [...prev, newStockData]);
-      
+      setWatchlistStocks((prev) => [...prev, newStockData]);
+
       onClose();
       setSearchQuery('');
       setSearchResults([]);
@@ -209,12 +227,8 @@ export default function Watchlist() {
               height="32px"
               color={brandColor}
             />
-            <Text
-              color={textColor}
-              fontSize="28px"
-              fontWeight="700"
-            >
-              Investment Watchlist
+            <Text color={textColor} fontSize="28px" fontWeight="700">
+              Smart Watchlist
             </Text>
           </HStack>
           <Button
@@ -224,7 +238,7 @@ export default function Watchlist() {
             color={brandColor}
             _hover={{
               bg: brandColor,
-              color: 'white'
+              color: 'white',
             }}
             onClick={onOpen}
             isDisabled={isLoadingWatchlist}
@@ -260,21 +274,12 @@ export default function Watchlist() {
               color={gray}
               mb="20px"
             />
-            <Text
-              color={textColor}
-              fontSize="24px"
-              fontWeight="600"
-              mb="10px"
-            >
+            <Text color={textColor} fontSize="24px" fontWeight="600" mb="10px">
               Your Watchlist is Empty
             </Text>
-            <Text
-              color={gray}
-              fontSize="16px"
-              mb="30px"
-              maxW="400px"
-            >
-              Start building your investment portfolio by adding stocks, bonds, ETFs, or other assets you want to track.
+            <Text color={gray} fontSize="16px" mb="30px" maxW="400px">
+              Start building your investment portfolio by adding stocks, bonds,
+              ETFs, or other assets you want to track.
             </Text>
             <Button
               leftIcon={<Icon as={MdAdd} />}
@@ -300,11 +305,7 @@ export default function Watchlist() {
           </Flex>
         ) : (
           /* Watchlist Vertical Stack */
-          <VStack
-            spacing="20px"
-            w="100%"
-            align="stretch"
-          >
+          <VStack spacing="20px" w="100%" align="stretch">
             {watchlistStocks.map((stock) => (
               <WatchlistCard
                 key={stock.symbol}
@@ -321,12 +322,20 @@ export default function Watchlist() {
             <CardBody>
               <HStack justify="space-between">
                 <VStack align="start" spacing="2px">
-                  <Text fontWeight="600" color={textColor}>AAPL</Text>
-                  <Text fontSize="sm" color={gray}>Apple Inc.</Text>
+                  <Text fontWeight="600" color={textColor}>
+                    AAPL
+                  </Text>
+                  <Text fontSize="sm" color={gray}>
+                    Apple Inc.
+                  </Text>
                 </VStack>
                 <VStack align="end" spacing="2px">
-                  <Text fontWeight="600" color={textColor}>$150.25</Text>
-                  <Text fontSize="sm" color="green.500">+2.45%</Text>
+                  <Text fontWeight="600" color={textColor}>
+                    $150.25
+                  </Text>
+                  <Text fontSize="sm" color="green.500">
+                    +2.45%
+                  </Text>
                 </VStack>
               </HStack>
             </CardBody>
@@ -337,12 +346,7 @@ export default function Watchlist() {
       {/* Search Modal */}
       <Modal isOpen={isOpen} onClose={onClose} size="xl" isCentered>
         <ModalOverlay bg="blackAlpha.600" />
-        <ModalContent
-          bg={modalBg}
-          borderRadius="20px"
-          boxShadow="xl"
-          mx="20px"
-        >
+        <ModalContent bg={modalBg} borderRadius="20px" boxShadow="xl" mx="20px">
           <ModalHeader
             pb="20px"
             borderBottom="1px solid"
@@ -386,115 +390,136 @@ export default function Watchlist() {
                     <VStack spacing="10px">
                       <Spinner color={brandColor} size="lg" />
                       <Text color={gray} fontSize="sm">
-                        {isSearching ? 'Searching...' : 'Adding to watchlist...'}
+                        {isSearching
+                          ? 'Searching...'
+                          : 'Adding to watchlist...'}
                       </Text>
                     </VStack>
                   </Flex>
                 )}
 
-                {!isSearching && searchQuery.length >= 2 && searchResults.length === 0 && (
-                  <Flex justify="center" py="40px">
-                    <Text color={gray} fontSize="sm">
-                      No investments found for "{searchQuery}"
-                    </Text>
-                  </Flex>
-                )}
+                {!isSearching &&
+                  searchQuery.length >= 2 &&
+                  searchResults.length === 0 && (
+                    <Flex justify="center" py="40px">
+                      <Text color={gray} fontSize="sm">
+                        No investments found for "{searchQuery}"
+                      </Text>
+                    </Flex>
+                  )}
 
-                {!isSearching && !isAddingToWatchlist && searchResults.length > 0 && (
-                  <List spacing="10px">
-                    {searchResults.map((item, index) => (
-                      <ListItem key={index}>
-                        <Card
-                          bg={cardBg}
-                          border="1px solid"
-                          borderColor={borderColor}
-                          borderRadius="12px"
-                          cursor="pointer"
-                          transition="all 0.2s ease"
-                          _hover={{
-                            borderColor: brandColor,
-                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                            bg: useColorModeValue('gray.50', 'navy.600'),
-                          }}
-                          onClick={() => handleAddToWatchlist(item)}
-                        >
-                          <CardBody py="15px">
-                            <Flex justify="space-between" align="center">
-                              <HStack spacing="12px">
-                                <Flex
-                                  w="40px"
-                                  h="40px"
-                                  borderRadius="8px"
-                                  bg={brandColor}
-                                  align="center"
-                                  justify="center"
-                                >
-                                  <Icon
-                                    as={MdShowChart}
-                                    color="white"
-                                    w="20px"
-                                    h="20px"
-                                  />
-                                </Flex>
-                                <VStack align="start" spacing="2px">
-                                  <HStack spacing="8px">
-                                    <Text
-                                      fontWeight="600"
-                                      color={textColor}
-                                      fontSize="md"
-                                    >
-                                      {item.symbol}
+                {!isSearching &&
+                  !isAddingToWatchlist &&
+                  searchResults.length > 0 && (
+                    <List spacing="10px">
+                      {searchResults.map((item, index) => (
+                        <ListItem key={index}>
+                          <Card
+                            bg={cardBg}
+                            border="1px solid"
+                            borderColor={borderColor}
+                            borderRadius="12px"
+                            cursor="pointer"
+                            transition="all 0.2s ease"
+                            _hover={{
+                              borderColor: brandColor,
+                              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                              bg: useColorModeValue('gray.50', 'navy.600'),
+                            }}
+                            onClick={() => handleAddToWatchlist(item)}
+                          >
+                            <CardBody py="15px">
+                              <Flex justify="space-between" align="center">
+                                <HStack spacing="12px">
+                                  <Flex
+                                    w="40px"
+                                    h="40px"
+                                    borderRadius="8px"
+                                    bg={brandColor}
+                                    align="center"
+                                    justify="center"
+                                  >
+                                    <Icon
+                                      as={MdShowChart}
+                                      color="white"
+                                      w="20px"
+                                      h="20px"
+                                    />
+                                  </Flex>
+                                  <VStack align="start" spacing="2px">
+                                    <HStack spacing="8px">
+                                      <Text
+                                        fontWeight="600"
+                                        color={textColor}
+                                        fontSize="md"
+                                      >
+                                        {item.symbol}
+                                      </Text>
+                                      <Badge
+                                        colorScheme={
+                                          item.security_type === 'CS'
+                                            ? 'blue'
+                                            : item.security_type === 'ETF'
+                                            ? 'green'
+                                            : 'purple'
+                                        }
+                                        fontSize="xs"
+                                        borderRadius="4px"
+                                      >
+                                        {item.security_type === 'CS'
+                                          ? 'Stock'
+                                          : item.security_type === 'ETF'
+                                          ? 'ETF'
+                                          : 'ADR'}
+                                      </Badge>
+                                    </HStack>
+                                    <Text fontSize="sm" color={gray}>
+                                      {item.name}
                                     </Text>
-                                    <Badge
-                                      colorScheme={
-                                        item.security_type === 'CS' ? 'blue' : 
-                                        item.security_type === 'ETF' ? 'green' : 'purple'
-                                      }
-                                      fontSize="xs"
-                                      borderRadius="4px"
-                                    >
-                                      {item.security_type === 'CS' ? 'Stock' : 
-                                       item.security_type === 'ETF' ? 'ETF' : 'ADR'}
-                                    </Badge>
-                                  </HStack>
-                                  <Text fontSize="sm" color={gray}>
-                                    {item.name}
+                                  </VStack>
+                                </HStack>
+                                <VStack align="end" spacing="2px">
+                                  <Text fontWeight="600" color={textColor}>
+                                    {item.current_price
+                                      ? `$${item.current_price.toFixed(2)}`
+                                      : 'N/A'}
+                                  </Text>
+                                  <Text
+                                    fontSize="sm"
+                                    color={
+                                      item.day_change_percent
+                                        ? item.day_change_percent >= 0
+                                          ? 'green.500'
+                                          : 'red.500'
+                                        : gray
+                                    }
+                                  >
+                                    {item.day_change_percent
+                                      ? `${
+                                          item.day_change_percent >= 0
+                                            ? '+'
+                                            : ''
+                                        }${item.day_change_percent.toFixed(2)}%`
+                                      : 'N/A'}
                                   </Text>
                                 </VStack>
-                              </HStack>
-                              <VStack align="end" spacing="2px">
-                                <Text fontWeight="600" color={textColor}>
-                                  {item.current_price ? `$${item.current_price.toFixed(2)}` : 'N/A'}
-                                </Text>
-                                <Text
-                                  fontSize="sm"
-                                  color={
-                                    item.day_change_percent 
-                                      ? item.day_change_percent >= 0 ? 'green.500' : 'red.500'
-                                      : gray
-                                  }
-                                >
-                                  {item.day_change_percent 
-                                    ? `${item.day_change_percent >= 0 ? '+' : ''}${item.day_change_percent.toFixed(2)}%`
-                                    : 'N/A'
-                                  }
-                                </Text>
-                              </VStack>
-                            </Flex>
-                          </CardBody>
-                        </Card>
-                      </ListItem>
-                    ))}
-                  </List>
-                )}
+                              </Flex>
+                            </CardBody>
+                          </Card>
+                        </ListItem>
+                      ))}
+                    </List>
+                  )}
 
-                {searchQuery.length < 2 && !isSearching && !isAddingToWatchlist && (
-                  <Flex justify="center" py="40px">
-                    <Text color={gray} fontSize="sm" textAlign="center">
-                      Type at least 2 characters to search for investments
-                    </Text>
-                  </Flex>
-                )}
+                {searchQuery.length < 2 &&
+                  !isSearching &&
+                  !isAddingToWatchlist && (
+                    <Flex justify="center" py="40px">
+                      <Text color={gray} fontSize="sm" textAlign="center">
+                        Type at least 2 characters to search for investments
+                      </Text>
+                    </Flex>
+                  )}
               </Box>
             </VStack>
           </ModalBody>

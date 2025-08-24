@@ -170,6 +170,7 @@ export interface NewsItem {
   date: string;
   source: string;
   url: string;
+  favicon?: string;
   impact_level: 'High' | 'Medium' | 'Low';
   summary: string;
 }
