@@ -49,6 +49,7 @@ export interface StockData {
   weekHigh52: number;
   weekLow52: number;
   lastUpdated: string;
+  logoUrl?: string;
   news?: NewsItem[];
   newsSummary?: string;
   sentimentRationale?: string;
@@ -148,17 +149,38 @@ export function WatchlistCard({ stock, onRemove }: WatchlistCardProps) {
           {/* Left Side - Stock Info with Fixed Width */}
           <Flex w="400px" align="start">
             <HStack spacing="12px" w="100%">
-              {/* Stock Icon */}
+              {/* Stock Logo */}
               <Flex
                 w="48px"
                 h="48px"
                 borderRadius="12px"
-                bg={brandColor}
+                border="1px solid"
+                borderColor={borderColor}
+                bg={useColorModeValue('gray.50', 'gray.700')}
                 align="center"
                 justify="center"
                 flexShrink={0}
+                overflow="hidden"
               >
-                <Icon as={MdShowChart} color="white" w="24px" h="24px" />
+                {stock.logoUrl ? (
+                  <Image
+                    src={stock.logoUrl}
+                    alt={`${stock.companyName} logo`}
+                    w="40px"
+                    h="40px"
+                    objectFit="contain"
+                    borderRadius="8px"
+                    fallback={
+                      <Icon as={MdShowChart} color={brandColor} w="24px" h="24px" />
+                    }
+                    onError={(e) => {
+                      // Hide the image and show fallback icon
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <Icon as={MdShowChart} color={brandColor} w="24px" h="24px" />
+                )}
               </Flex>
 
               {/* Symbol and Company */}

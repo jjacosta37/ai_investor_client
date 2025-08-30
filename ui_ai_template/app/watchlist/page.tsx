@@ -26,6 +26,7 @@ import {
   ListItem,
   Badge,
   SimpleGrid,
+  Image,
 } from '@chakra-ui/react';
 import {
   MdBookmark,
@@ -435,16 +436,38 @@ export default function Watchlist() {
                                     w="40px"
                                     h="40px"
                                     borderRadius="8px"
-                                    bg={brandColor}
+                                    border="1px solid"
+                                    borderColor={borderColor}
+                                    bg="white"
                                     align="center"
                                     justify="center"
+                                    overflow="hidden"
                                   >
-                                    <Icon
-                                      as={MdShowChart}
-                                      color="white"
-                                      w="20px"
-                                      h="20px"
-                                    />
+                                    {item.logo_url ? (
+                                      <Image
+                                        src={item.logo_url}
+                                        alt={`${item.name} logo`}
+                                        w="32px"
+                                        h="32px"
+                                        objectFit="contain"
+                                        borderRadius="6px"
+                                        fallback={
+                                          <Icon
+                                            as={MdShowChart}
+                                            color={brandColor}
+                                            w="20px"
+                                            h="20px"
+                                          />
+                                        }
+                                      />
+                                    ) : (
+                                      <Icon
+                                        as={MdShowChart}
+                                        color={brandColor}
+                                        w="20px"
+                                        h="20px"
+                                      />
+                                    )}
                                   </Flex>
                                   <VStack align="start" spacing="2px">
                                     <HStack spacing="8px">

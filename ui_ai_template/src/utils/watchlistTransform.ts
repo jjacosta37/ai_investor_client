@@ -78,6 +78,7 @@ export function transformWatchlistItemToStockData(
     weekHigh52: security.year_high || currentPrice,
     weekLow52: security.year_low || currentPrice,
     lastUpdated: item.added_at,
+    logoUrl: security.logo_url || undefined,
 
     // Map latest news from server data (only actual news items)
     news: latestNews.map((newsItem, index) => ({
