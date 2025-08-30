@@ -158,39 +158,22 @@ export function WatchlistCard({ stock, onRemove }: WatchlistCardProps) {
                 justify="center"
                 flexShrink={0}
               >
-                <Icon
-                  as={MdShowChart}
-                  color="white"
-                  w="24px"
-                  h="24px"
-                />
+                <Icon as={MdShowChart} color="white" w="24px" h="24px" />
               </Flex>
 
               {/* Symbol and Company */}
               <VStack align="start" spacing="2px" flex="1" minW="0">
-                <Text
-                  fontWeight="700"
-                  color={textColor}
-                  fontSize="lg"
-                >
+                <Text fontWeight="700" color={textColor} fontSize="lg">
                   {stock.symbol}
                 </Text>
-                <Text
-                  fontSize="sm"
-                  color={gray}
-                  noOfLines={1}
-                >
+                <Text fontSize="sm" color={gray} noOfLines={1}>
                   {stock.companyName}
                 </Text>
               </VStack>
 
               {/* Price and Change */}
               <VStack align="end" spacing="4px" w="120px" flexShrink={0}>
-                <Text
-                  fontWeight="700"
-                  color={textColor}
-                  fontSize="xl"
-                >
+                <Text fontWeight="700" color={textColor} fontSize="xl">
                   {formatCurrency(stock.currentPrice)}
                 </Text>
                 <HStack spacing="4px">
@@ -200,11 +183,7 @@ export function WatchlistCard({ stock, onRemove }: WatchlistCardProps) {
                     w="16px"
                     h="16px"
                   />
-                  <Text
-                    fontSize="sm"
-                    color={changeColor}
-                    fontWeight="600"
-                  >
+                  <Text fontSize="sm" color={changeColor} fontWeight="600">
                     {formatChange(stock.changePercent, true)}
                   </Text>
                 </HStack>
@@ -239,13 +218,27 @@ export function WatchlistCard({ stock, onRemove }: WatchlistCardProps) {
                     <Badge
                       size="sm"
                       colorScheme={
-                        (stock.news && stock.news.length > 0 && stock.news[0].sentiment === 'positive') ? 'green' :
-                        (stock.news && stock.news.length > 0 && stock.news[0].sentiment === 'negative') ? 'red' : 'gray'
+                        stock.news &&
+                        stock.news.length > 0 &&
+                        stock.news[0].sentiment === 'positive'
+                          ? 'green'
+                          : stock.news &&
+                            stock.news.length > 0 &&
+                            stock.news[0].sentiment === 'negative'
+                          ? 'red'
+                          : 'gray'
                       }
                       cursor={stock.sentimentRationale ? 'help' : 'default'}
                     >
-                      {(stock.news && stock.news.length > 0 && stock.news[0].sentiment === 'positive') ? 'Bullish' :
-                       (stock.news && stock.news.length > 0 && stock.news[0].sentiment === 'negative') ? 'Bearish' : 'Neutral'}
+                      {stock.news &&
+                      stock.news.length > 0 &&
+                      stock.news[0].sentiment === 'positive'
+                        ? 'Bullish'
+                        : stock.news &&
+                          stock.news.length > 0 &&
+                          stock.news[0].sentiment === 'negative'
+                        ? 'Bearish'
+                        : 'Neutral'}
                     </Badge>
                   </Tooltip>
                 </HStack>
@@ -256,14 +249,14 @@ export function WatchlistCard({ stock, onRemove }: WatchlistCardProps) {
                   noOfLines={3}
                   lineHeight="1.3"
                 >
-                  {stock.newsSummary || 
-                    (stock.news && stock.news.length > 1 
-                      ? `${stock.news[0].headline} • ${stock.news[1]?.headline || ''}`
-                      : stock.news && stock.news.length > 0 
-                        ? stock.news[0].headline
-                        : 'No news summary available'
-                    )
-                  }
+                  {stock.newsSummary ||
+                    (stock.news && stock.news.length > 1
+                      ? `${stock.news[0].headline} • ${
+                          stock.news[1]?.headline || ''
+                        }`
+                      : stock.news && stock.news.length > 0
+                      ? stock.news[0].headline
+                      : 'No news summary available')}
                 </Text>
               </Box>
             </Box>
@@ -289,46 +282,58 @@ export function WatchlistCard({ stock, onRemove }: WatchlistCardProps) {
         <Collapse in={isExpanded} animateOpacity>
           <Box pt="20px">
             <Divider mb="20px" borderColor={borderColor} />
-            
+
             {/* Detailed Stats */}
             <SimpleGrid columns={{ base: 2, md: 3 }} spacing="15px" mb="20px">
               <Stat>
-                <StatLabel color={gray} fontSize="xs">Volume</StatLabel>
+                <StatLabel color={gray} fontSize="xs">
+                  Volume
+                </StatLabel>
                 <StatNumber color={textColor} fontSize="md">
                   {formatVolume(stock.volume)}
                 </StatNumber>
               </Stat>
-              
+
               <Stat>
-                <StatLabel color={gray} fontSize="xs">Market Cap</StatLabel>
+                <StatLabel color={gray} fontSize="xs">
+                  Market Cap
+                </StatLabel>
                 <StatNumber color={textColor} fontSize="md">
                   {stock.marketCap}
                 </StatNumber>
               </Stat>
-              
+
               <Stat>
-                <StatLabel color={gray} fontSize="xs">P/E Ratio</StatLabel>
+                <StatLabel color={gray} fontSize="xs">
+                  P/E Ratio
+                </StatLabel>
                 <StatNumber color={textColor} fontSize="md">
                   {stock.peRatio}
                 </StatNumber>
               </Stat>
-              
+
               <Stat>
-                <StatLabel color={gray} fontSize="xs">52W High</StatLabel>
+                <StatLabel color={gray} fontSize="xs">
+                  Year High
+                </StatLabel>
                 <StatNumber color={textColor} fontSize="md">
                   {formatCurrency(stock.weekHigh52)}
                 </StatNumber>
               </Stat>
-              
+
               <Stat>
-                <StatLabel color={gray} fontSize="xs">52W Low</StatLabel>
+                <StatLabel color={gray} fontSize="xs">
+                  Year Low
+                </StatLabel>
                 <StatNumber color={textColor} fontSize="md">
                   {formatCurrency(stock.weekLow52)}
                 </StatNumber>
               </Stat>
-              
+
               <Stat>
-                <StatLabel color={gray} fontSize="xs">Change</StatLabel>
+                <StatLabel color={gray} fontSize="xs">
+                  Change
+                </StatLabel>
                 <StatNumber color={changeColor} fontSize="md">
                   {formatChange(stock.change)}
                 </StatNumber>
@@ -346,16 +351,8 @@ export function WatchlistCard({ stock, onRemove }: WatchlistCardProps) {
                 >
                   Executive Summary
                 </Text>
-                <Box
-                  p="12px"
-                  borderRadius="8px"
-                  bg={hoverBg}
-                >
-                  <Text
-                    fontSize="sm"
-                    color={textColor}
-                    lineHeight="1.7"
-                  >
+                <Box p="12px" borderRadius="8px" bg={hoverBg}>
+                  <Text fontSize="sm" color={textColor} lineHeight="1.7">
                     {stock.executiveSummary}
                   </Text>
                 </Box>
@@ -373,11 +370,7 @@ export function WatchlistCard({ stock, onRemove }: WatchlistCardProps) {
                 >
                   Key Highlights
                 </Text>
-                <Box
-                  p="12px"
-                  borderRadius="8px"
-                  bg={hoverBg}
-                >
+                <Box p="12px" borderRadius="8px" bg={hoverBg}>
                   <UnorderedList spacing="4px">
                     {stock.keyHighlights.map((highlight, index) => (
                       <ListItem
@@ -395,52 +388,39 @@ export function WatchlistCard({ stock, onRemove }: WatchlistCardProps) {
             )}
 
             {/* Positive Catalysts & Risk Factors Section */}
-            {((stock.positiveCatalysts && stock.positiveCatalysts.length > 0) || 
+            {((stock.positiveCatalysts && stock.positiveCatalysts.length > 0) ||
               (stock.riskFactors && stock.riskFactors.length > 0)) && (
               <Box mb="20px">
                 <SimpleGrid columns={2} spacing="15px">
                   {/* Positive Catalysts Column */}
-                  {stock.positiveCatalysts && stock.positiveCatalysts.length > 0 && (
-                    <Box
-                      p="12px"
-                      borderRadius="8px"
-                      bg={hoverBg}
-                    >
-                      <HStack justify="space-between" mb="8px">
-                        <Badge
-                          size="sm"
-                          colorScheme="green"
-                        >
-                          Positive Catalysts
-                        </Badge>
-                      </HStack>
-                      <UnorderedList spacing="6px">
-                        {stock.positiveCatalysts.map((catalyst, index) => (
-                          <ListItem
-                            key={index}
-                            fontSize="sm"
-                            color={textColor}
-                            lineHeight="1.7"
-                          >
-                            {catalyst}
-                          </ListItem>
-                        ))}
-                      </UnorderedList>
-                    </Box>
-                  )}
+                  {stock.positiveCatalysts &&
+                    stock.positiveCatalysts.length > 0 && (
+                      <Box p="12px" borderRadius="8px" bg={hoverBg}>
+                        <HStack justify="space-between" mb="8px">
+                          <Badge size="sm" colorScheme="green">
+                            Positive Catalysts
+                          </Badge>
+                        </HStack>
+                        <UnorderedList spacing="6px">
+                          {stock.positiveCatalysts.map((catalyst, index) => (
+                            <ListItem
+                              key={index}
+                              fontSize="sm"
+                              color={textColor}
+                              lineHeight="1.7"
+                            >
+                              {catalyst}
+                            </ListItem>
+                          ))}
+                        </UnorderedList>
+                      </Box>
+                    )}
 
                   {/* Risk Factors Column */}
                   {stock.riskFactors && stock.riskFactors.length > 0 && (
-                    <Box
-                      p="12px"
-                      borderRadius="8px"
-                      bg={hoverBg}
-                    >
+                    <Box p="12px" borderRadius="8px" bg={hoverBg}>
                       <HStack justify="space-between" mb="8px">
-                        <Badge
-                          size="sm"
-                          colorScheme="red"
-                        >
+                        <Badge size="sm" colorScheme="red">
                           Risk Factors
                         </Badge>
                       </HStack>
@@ -482,14 +462,27 @@ export function WatchlistCard({ stock, onRemove }: WatchlistCardProps) {
                       bg={hoverBg}
                       border="1px solid"
                       borderColor={borderColor}
-                      cursor={newsItem.url ? "pointer" : "default"}
+                      cursor={newsItem.url ? 'pointer' : 'default'}
                       transition="all 0.2s ease"
-                      _hover={newsItem.url ? {
-                        borderColor: brandColor,
-                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                        transform: 'translateY(-1px)'
-                      } : {}}
-                      onClick={newsItem.url ? () => window.open(newsItem.url, '_blank', 'noopener,noreferrer') : undefined}
+                      _hover={
+                        newsItem.url
+                          ? {
+                              borderColor: brandColor,
+                              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                              transform: 'translateY(-1px)',
+                            }
+                          : {}
+                      }
+                      onClick={
+                        newsItem.url
+                          ? () =>
+                              window.open(
+                                newsItem.url,
+                                '_blank',
+                                'noopener,noreferrer',
+                              )
+                          : undefined
+                      }
                     >
                       {/* Header with Favicon, Title and Sentiment */}
                       <Flex justify="space-between" align="flex-start" mb="8px">
@@ -524,13 +517,19 @@ export function WatchlistCard({ stock, onRemove }: WatchlistCardProps) {
                         <Badge
                           size="sm"
                           colorScheme={
-                            newsItem.sentiment === 'positive' ? 'green' :
-                            newsItem.sentiment === 'negative' ? 'red' : 'gray'
+                            newsItem.sentiment === 'positive'
+                              ? 'green'
+                              : newsItem.sentiment === 'negative'
+                              ? 'red'
+                              : 'gray'
                           }
                           flexShrink={0}
                         >
-                          {newsItem.sentiment === 'positive' ? 'Bullish' :
-                           newsItem.sentiment === 'negative' ? 'Bearish' : 'Neutral'}
+                          {newsItem.sentiment === 'positive'
+                            ? 'Bullish'
+                            : newsItem.sentiment === 'negative'
+                            ? 'Bearish'
+                            : 'Neutral'}
                         </Badge>
                       </Flex>
 
@@ -570,19 +569,18 @@ export function WatchlistCard({ stock, onRemove }: WatchlistCardProps) {
                 >
                   What to Watch
                 </Text>
-                <Box
-                  p="12px"
-                  borderRadius="8px"
-                  bg={hoverBg}
-                >
+                <Box p="12px" borderRadius="8px" bg={hoverBg}>
                   <VStack spacing="8px" align="stretch">
                     {stock.upcomingEvents.map((event, index) => (
                       <HStack key={index} spacing="10px">
                         <Badge
                           size="sm"
                           colorScheme={
-                            event.type === 'earnings' ? 'purple' :
-                            event.type === 'dividend' ? 'green' : 'blue'
+                            event.type === 'earnings'
+                              ? 'purple'
+                              : event.type === 'dividend'
+                              ? 'green'
+                              : 'blue'
                           }
                         >
                           {event.type.toUpperCase()}

@@ -93,8 +93,8 @@ export interface Security {
   dividend_yield?: number | null;
   volume?: number | null;
   avg_volume?: number | null;
-  week_52_high?: number | null;
-  week_52_low?: number | null;
+  year_high?: number | null;
+  year_low?: number | null;
   book_value?: number | null;
   debt_to_equity?: number | null;
   roe?: number | null;
@@ -178,7 +178,13 @@ export interface NewsItem {
 export interface UpcomingEvent {
   event: string;
   date: string;
-  category: 'Earnings' | 'Corporate_Actions' | 'Regulatory' | 'Strategic' | 'Industry' | 'Economic';
+  category:
+    | 'Earnings'
+    | 'Corporate_Actions'
+    | 'Regulatory'
+    | 'Strategic'
+    | 'Industry'
+    | 'Economic';
   importance: 'High' | 'Medium' | 'Low';
 }
 
