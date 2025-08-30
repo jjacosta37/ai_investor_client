@@ -208,3 +208,47 @@ export interface WatchlistCreateRequest {
 }
 
 export interface WatchlistCreateResponse extends WatchlistItem {}
+
+// Holdings Types
+export interface Holding {
+  id: string;
+  security: Security;
+  quantity: number;
+  average_cost: number;
+  total_cost: number;
+  current_value: number;
+  unrealized_gain_loss: number;
+  unrealized_gain_loss_percent: number;
+  portfolio_weight_percent: number;
+  first_purchase_date: string;
+  last_updated: string;
+  notes: string;
+  broker: string;
+}
+
+export interface PortfolioSummary {
+  total_portfolio_value: number;
+  total_cost: number;
+  total_unrealized_gain_loss: number;
+  total_unrealized_gain_loss_percent: number;
+}
+
+export interface HoldingsResponse {
+  count: number;
+  total_portfolio_value: number;
+  total_cost: number;
+  total_unrealized_gain_loss: number;
+  total_unrealized_gain_loss_percent: number;
+  results: Holding[];
+}
+
+// Treemap Data Types (for chart visualization)
+export interface TreemapData {
+  name: string;
+  value: number;
+  symbol: string;
+  percentage: number;
+  gainLoss: number;
+  gainLossPercent: number;
+  color?: string;
+}
