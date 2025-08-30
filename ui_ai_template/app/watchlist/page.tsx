@@ -438,7 +438,7 @@ export default function Watchlist() {
                                     borderRadius="8px"
                                     border="1px solid"
                                     borderColor={borderColor}
-                                    bg="white"
+                                    bg={useColorModeValue('gray.50', 'gray.700')}
                                     align="center"
                                     justify="center"
                                     overflow="hidden"
