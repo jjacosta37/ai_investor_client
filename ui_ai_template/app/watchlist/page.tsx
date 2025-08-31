@@ -11,12 +11,6 @@ import {
   Button,
   Card,
   CardBody,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalCloseButton,
   Input,
   InputGroup,
   InputLeftElement,
@@ -37,6 +31,7 @@ import {
 } from 'react-icons/md';
 import { useState, useEffect, useCallback } from 'react';
 import { WatchlistCard, StockData } from '@/components/watchlist/WatchlistCard';
+import { BaseModal } from '@/components/modal/BaseModal';
 import { securitiesService, watchlistService } from '@/services/api';
 import { Security, WatchlistItem } from '@/types/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -68,7 +63,6 @@ export default function Watchlist() {
   const gray = useColorModeValue('gray.500', 'gray.400');
   const cardBg = useColorModeValue('white', 'navy.700');
   const borderColor = useColorModeValue('gray.200', 'whiteAlpha.200');
-  const modalBg = useColorModeValue('white', 'navy.800');
 
   // Fetch user's watchlist from server
   const fetchWatchlist = useCallback(async () => {
@@ -345,209 +339,197 @@ export default function Watchlist() {
       </VStack>
 
       {/* Search Modal */}
-      <Modal isOpen={isOpen} onClose={onClose} size="xl" isCentered>
-        <ModalOverlay bg="blackAlpha.600" />
-        <ModalContent bg={modalBg} borderRadius="20px" boxShadow="xl" mx="20px">
-          <ModalHeader
-            pb="20px"
-            borderBottom="1px solid"
-            borderColor={borderColor}
-          >
-            <HStack spacing="10px">
-              <Icon as={MdSearch} color={brandColor} />
-              <Text color={textColor} fontSize="lg" fontWeight="600">
-                Search Investments
-              </Text>
-            </HStack>
-          </ModalHeader>
-          <ModalCloseButton />
-          <ModalBody pb="30px" pt="20px">
-            <VStack spacing="20px" align="stretch">
-              {/* Search Input */}
-              <InputGroup size="lg">
-                <InputLeftElement pointerEvents="none">
-                  <Icon as={MdSearch} color={gray} />
-                </InputLeftElement>
-                <Input
-                  placeholder="Search for stocks, ETFs, bonds..."
-                  value={searchQuery}
-                  onChange={(e) => {
-                    handleSearch(e.target.value);
-                  }}
-                  borderRadius="12px"
-                  borderColor={borderColor}
-                  _focus={{
-                    borderColor: brandColor,
-                    boxShadow: `0 0 0 1px ${brandColor}`,
-                  }}
-                  color={textColor}
-                />
-              </InputGroup>
+      <BaseModal
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Search Investments"
+        icon={MdSearch}
+        size="xl"
+      >
+        <VStack spacing="20px" align="stretch">
+          {/* Search Input */}
+          <InputGroup size="lg">
+            <InputLeftElement pointerEvents="none">
+              <Icon as={MdSearch} color={gray} />
+            </InputLeftElement>
+            <Input
+              placeholder="Search for stocks, ETFs, bonds..."
+              value={searchQuery}
+              onChange={(e) => {
+                handleSearch(e.target.value);
+              }}
+              borderRadius="12px"
+              borderColor={borderColor}
+              _focus={{
+                borderColor: brandColor,
+                boxShadow: `0 0 0 1px ${brandColor}`,
+              }}
+              color={textColor}
+            />
+          </InputGroup>
 
-              {/* Search Results */}
-              <Box maxH="400px" overflowY="auto">
-                {(isSearching || isAddingToWatchlist) && (
-                  <Flex justify="center" py="40px">
-                    <VStack spacing="10px">
-                      <Spinner color={brandColor} size="lg" />
-                      <Text color={gray} fontSize="sm">
-                        {isSearching
-                          ? 'Searching...'
-                          : 'Adding to watchlist...'}
-                      </Text>
-                    </VStack>
-                  </Flex>
-                )}
+          {/* Search Results */}
+          <Box maxH="400px" overflowY="auto">
+            {(isSearching || isAddingToWatchlist) && (
+              <Flex justify="center" py="40px">
+                <VStack spacing="10px">
+                  <Spinner color={brandColor} size="lg" />
+                  <Text color={gray} fontSize="sm">
+                    {isSearching
+                      ? 'Searching...'
+                      : 'Adding to watchlist...'}
+                  </Text>
+                </VStack>
+              </Flex>
+            )}
 
-                {!isSearching &&
-                  searchQuery.length >= 2 &&
-                  searchResults.length === 0 && (
-                    <Flex justify="center" py="40px">
-                      <Text color={gray} fontSize="sm">
-                        No investments found for "{searchQuery}"
-                      </Text>
-                    </Flex>
-                  )}
+            {!isSearching &&
+              searchQuery.length >= 2 &&
+              searchResults.length === 0 && (
+                <Flex justify="center" py="40px">
+                  <Text color={gray} fontSize="sm">
+                    No investments found for "{searchQuery}"
+                  </Text>
+                </Flex>
+              )}
 
-                {!isSearching &&
-                  !isAddingToWatchlist &&
-                  searchResults.length > 0 && (
-                    <List spacing="10px">
-                      {searchResults.map((item, index) => (
-                        <ListItem key={index}>
-                          <Card
-                            bg={cardBg}
-                            border="1px solid"
-                            borderColor={borderColor}
-                            borderRadius="12px"
-                            cursor="pointer"
-                            transition="all 0.2s ease"
-                            _hover={{
-                              borderColor: brandColor,
-                              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                              bg: useColorModeValue('gray.50', 'navy.600'),
-                            }}
-                            onClick={() => handleAddToWatchlist(item)}
-                          >
-                            <CardBody py="15px">
-                              <Flex justify="space-between" align="center">
-                                <HStack spacing="12px">
-                                  <Flex
-                                    w="40px"
-                                    h="40px"
-                                    borderRadius="8px"
-                                    border="1px solid"
-                                    borderColor={borderColor}
-                                    bg={useColorModeValue('gray.50', 'gray.700')}
-                                    align="center"
-                                    justify="center"
-                                    overflow="hidden"
-                                  >
-                                    {item.logo_url ? (
-                                      <Image
-                                        src={item.logo_url}
-                                        alt={`${item.name} logo`}
-                                        w="32px"
-                                        h="32px"
-                                        objectFit="contain"
-                                        borderRadius="6px"
-                                        fallback={
-                                          <Icon
-                                            as={MdShowChart}
-                                            color={brandColor}
-                                            w="20px"
-                                            h="20px"
-                                          />
-                                        }
-                                      />
-                                    ) : (
+            {!isSearching &&
+              !isAddingToWatchlist &&
+              searchResults.length > 0 && (
+                <List spacing="10px">
+                  {searchResults.map((item, index) => (
+                    <ListItem key={index}>
+                      <Card
+                        bg={cardBg}
+                        border="1px solid"
+                        borderColor={borderColor}
+                        borderRadius="12px"
+                        cursor="pointer"
+                        transition="all 0.2s ease"
+                        _hover={{
+                          borderColor: brandColor,
+                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                          bg: useColorModeValue('gray.50', 'navy.600'),
+                        }}
+                        onClick={() => handleAddToWatchlist(item)}
+                      >
+                        <CardBody py="15px">
+                          <Flex justify="space-between" align="center">
+                            <HStack spacing="12px">
+                              <Flex
+                                w="40px"
+                                h="40px"
+                                borderRadius="8px"
+                                border="1px solid"
+                                borderColor={borderColor}
+                                bg={useColorModeValue('gray.50', 'gray.700')}
+                                align="center"
+                                justify="center"
+                                overflow="hidden"
+                              >
+                                {item.logo_url ? (
+                                  <Image
+                                    src={item.logo_url}
+                                    alt={`${item.name} logo`}
+                                    w="32px"
+                                    h="32px"
+                                    objectFit="contain"
+                                    borderRadius="6px"
+                                    fallback={
                                       <Icon
                                         as={MdShowChart}
                                         color={brandColor}
                                         w="20px"
                                         h="20px"
                                       />
-                                    )}
-                                  </Flex>
-                                  <VStack align="start" spacing="2px">
-                                    <HStack spacing="8px">
-                                      <Text
-                                        fontWeight="600"
-                                        color={textColor}
-                                        fontSize="md"
-                                      >
-                                        {item.symbol}
-                                      </Text>
-                                      <Badge
-                                        colorScheme={
-                                          item.security_type === 'CS'
-                                            ? 'blue'
-                                            : item.security_type === 'ETF'
-                                            ? 'green'
-                                            : 'purple'
-                                        }
-                                        fontSize="xs"
-                                        borderRadius="4px"
-                                      >
-                                        {item.security_type === 'CS'
-                                          ? 'Stock'
-                                          : item.security_type === 'ETF'
-                                          ? 'ETF'
-                                          : 'ADR'}
-                                      </Badge>
-                                    </HStack>
-                                    <Text fontSize="sm" color={gray}>
-                                      {item.name}
-                                    </Text>
-                                  </VStack>
-                                </HStack>
-                                <VStack align="end" spacing="2px">
-                                  <Text fontWeight="600" color={textColor}>
-                                    {item.current_price
-                                      ? `$${item.current_price.toFixed(2)}`
-                                      : 'N/A'}
-                                  </Text>
-                                  <Text
-                                    fontSize="sm"
-                                    color={
-                                      item.day_change_percent
-                                        ? item.day_change_percent >= 0
-                                          ? 'green.500'
-                                          : 'red.500'
-                                        : gray
                                     }
-                                  >
-                                    {item.day_change_percent
-                                      ? `${
-                                          item.day_change_percent >= 0
-                                            ? '+'
-                                            : ''
-                                        }${item.day_change_percent.toFixed(2)}%`
-                                      : 'N/A'}
-                                  </Text>
-                                </VStack>
+                                  />
+                                ) : (
+                                  <Icon
+                                    as={MdShowChart}
+                                    color={brandColor}
+                                    w="20px"
+                                    h="20px"
+                                  />
+                                )}
                               </Flex>
-                            </CardBody>
-                          </Card>
-                        </ListItem>
-                      ))}
-                    </List>
-                  )}
+                              <VStack align="start" spacing="2px">
+                                <HStack spacing="8px">
+                                  <Text
+                                    fontWeight="600"
+                                    color={textColor}
+                                    fontSize="md"
+                                  >
+                                    {item.symbol}
+                                  </Text>
+                                  <Badge
+                                    colorScheme={
+                                      item.security_type === 'CS'
+                                        ? 'blue'
+                                        : item.security_type === 'ETF'
+                                        ? 'green'
+                                        : 'purple'
+                                    }
+                                    fontSize="xs"
+                                    borderRadius="4px"
+                                  >
+                                    {item.security_type === 'CS'
+                                      ? 'Stock'
+                                      : item.security_type === 'ETF'
+                                      ? 'ETF'
+                                      : 'ADR'}
+                                  </Badge>
+                                </HStack>
+                                <Text fontSize="sm" color={gray}>
+                                  {item.name}
+                                </Text>
+                              </VStack>
+                            </HStack>
+                            <VStack align="end" spacing="2px">
+                              <Text fontWeight="600" color={textColor}>
+                                {item.current_price
+                                  ? `$${item.current_price.toFixed(2)}`
+                                  : 'N/A'}
+                              </Text>
+                              <Text
+                                fontSize="sm"
+                                color={
+                                  item.day_change_percent
+                                    ? item.day_change_percent >= 0
+                                      ? 'green.500'
+                                      : 'red.500'
+                                    : gray
+                                }
+                              >
+                                {item.day_change_percent
+                                  ? `${
+                                      item.day_change_percent >= 0
+                                        ? '+'
+                                        : ''
+                                    }${item.day_change_percent.toFixed(2)}%`
+                                  : 'N/A'}
+                              </Text>
+                            </VStack>
+                          </Flex>
+                        </CardBody>
+                      </Card>
+                    </ListItem>
+                  ))}
+                </List>
+              )}
 
-                {searchQuery.length < 2 &&
-                  !isSearching &&
-                  !isAddingToWatchlist && (
-                    <Flex justify="center" py="40px">
-                      <Text color={gray} fontSize="sm" textAlign="center">
-                        Type at least 2 characters to search for investments
-                      </Text>
-                    </Flex>
-                  )}
-              </Box>
-            </VStack>
-          </ModalBody>
-        </ModalContent>
-      </Modal>
+            {searchQuery.length < 2 &&
+              !isSearching &&
+              !isAddingToWatchlist && (
+                <Flex justify="center" py="40px">
+                  <Text color={gray} fontSize="sm" textAlign="center">
+                    Type at least 2 characters to search for investments
+                  </Text>
+                </Flex>
+              )}
+          </Box>
+        </VStack>
+      </BaseModal>
     </Flex>
   );
 }
