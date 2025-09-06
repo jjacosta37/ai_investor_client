@@ -10,7 +10,12 @@ import {
   Icon,
 } from '@chakra-ui/react';
 import { MdAccountBalance } from 'react-icons/md';
-import { usePlaidLink } from 'react-plaid-link';
+import {
+  usePlaidLink,
+  PlaidLinkOnSuccess,
+  PlaidLinkOnSuccessMetadata,
+  PlaidLinkOnExit,
+} from 'react-plaid-link';
 import { useAuth } from '@/contexts/AuthContext';
 import { plaidService } from '@/services/api/plaid';
 
@@ -69,9 +74,12 @@ export function PlaidLink({
   }, [createLinkToken]);
 
   // Handle successful Link flow
-  const handleOnSuccess = useCallback(
-    async (public_token: string, metadata: any) => {
+  const handleOnSuccess = useCallback<PlaidLinkOnSuccess>(
+    async (public_token: string, metadata: PlaidLinkOnSuccessMetadata) => {
       console.log('Plaid Link onSuccess called:', { public_token, metadata });
+      console.log('Institution:', metadata.institution);
+      console.log('Accounts:', metadata.accounts);
+      console.log('Link session ID:', metadata.link_session_id);
 
       if (!user) return;
 
@@ -87,6 +95,9 @@ export function PlaidLink({
         // Show success toast
         toast({
           title: 'Account Connected!',
+          description: `Successfully connected ${
+            metadata.institution?.name || 'your account'
+          }`,
           status: 'success',
           duration: 5000,
           isClosable: true,
@@ -112,27 +123,11 @@ export function PlaidLink({
     [user, toast, onSuccess, onError],
   );
 
-  // Handle Plaid Link errors
-  const handleOnError = useCallback(
-    (error: any) => {
-      console.error('Plaid Link error:', error);
-      toast({
-        title: 'Connection Error',
-        description:
-          error.error_message || 'An error occurred during account connection.',
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
-      onError?.(error);
-    },
-    [toast, onError],
-  );
-
   // Handle user exiting Link flow
-  const handleOnExit = useCallback(
-    (error: any, metadata: any) => {
+  const handleOnExit = useCallback<PlaidLinkOnExit>(
+    (error, metadata) => {
       console.log('User exited Plaid Link:', { error, metadata });
+      console.log('Exit metadata:', metadata);
 
       if (error) {
         toast({
