@@ -16,10 +16,18 @@ import {
   Button,
   useDisclosure,
 } from '@chakra-ui/react';
-import { MdPieChart, MdTrendingUp, MdRefresh, MdAdd, MdAccountBalance, MdEdit } from 'react-icons/md';
+import {
+  MdPieChart,
+  MdTrendingUp,
+  MdRefresh,
+  MdAdd,
+  MdAccountBalance,
+  MdEdit,
+} from 'react-icons/md';
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { BaseModal } from '@/components/modal/BaseModal';
+import { PlaidLink } from '@/components/plaid/PlaidLink';
 import { holdingsService } from '@/services/api';
 import { HoldingsResponse } from '@/types/api';
 import { PortfolioSummary } from '@/components/holdings/PortfolioSummary';
@@ -232,38 +240,50 @@ export default function Holdings() {
         title="Add Investments"
         icon={MdAdd}
         size="lg"
+        trapFocus={false}
+        closeOnOverlayClick={false}
       >
         <Text color={gray} fontSize="sm" mb="20px">
           Choose how you'd like to add your investments to track your portfolio.
         </Text>
         <VStack spacing="16px" align="stretch">
-          <Button
-            leftIcon={<Icon as={MdAccountBalance} />}
-            variant="outline"
-            borderColor={brandColor}
-            color={brandColor}
-            size="lg"
-            h="60px"
-            borderRadius="12px"
-            _hover={{
-              bg: brandColor,
-              color: 'white',
-            }}
-            onClick={() => {
-              // TODO: Implement Plaid integration
-              console.log('Plaid integration clicked');
+          <PlaidLink
+            onSuccess={() => {
+              // Refresh holdings data after successful connection
+              handleRefresh();
               onClose();
             }}
+            onError={(error) => {
+              console.error('Plaid connection error:', error);
+            }}
+            onExit={() => {
+              // Modal stays open if user exits Plaid Link
+            }}
           >
-            <VStack spacing="2px">
-              <Text fontSize="md" fontWeight="600">
-                Connect via Plaid
-              </Text>
-              <Text fontSize="xs" opacity={0.8}>
-                Automatically sync your brokerage accounts
-              </Text>
-            </VStack>
-          </Button>
+            <Button
+              leftIcon={<Icon as={MdAccountBalance} />}
+              variant="outline"
+              borderColor={brandColor}
+              color={brandColor}
+              size="lg"
+              h="60px"
+              borderRadius="12px"
+              _hover={{
+                bg: brandColor,
+                color: 'white',
+              }}
+              w="100%"
+            >
+              <VStack spacing="2px">
+                <Text fontSize="md" fontWeight="600">
+                  Connect via Plaid
+                </Text>
+                <Text fontSize="xs" opacity={0.8}>
+                  Automatically sync your brokerage accounts
+                </Text>
+              </VStack>
+            </Button>
+          </PlaidLink>
           <Button
             leftIcon={<Icon as={MdEdit} />}
             variant="outline"
