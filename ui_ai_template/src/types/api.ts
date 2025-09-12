@@ -216,6 +216,20 @@ export interface WatchlistCreateRequest {
 export interface WatchlistCreateResponse extends WatchlistItem {}
 
 // Holdings Types
+export interface BrokerDetail {
+  holding_id: string;
+  broker: string;
+  quantity: number;
+  average_cost: number;
+  total_cost: number;
+  current_value?: number | null;
+  unrealized_gain_loss?: number | null;
+  unrealized_gain_loss_percent?: number | null;
+  first_purchase_date: string;
+  last_updated: string;
+  notes: string;
+}
+
 export interface Holding {
   id: string;
   security: Security;
@@ -229,7 +243,7 @@ export interface Holding {
   first_purchase_date: string;
   last_updated: string;
   notes: string;
-  broker: string;
+  broker_details?: BrokerDetail[]; // Optional for aggregated holdings
 }
 
 export interface PortfolioSummary {
