@@ -132,21 +132,6 @@ export default function Holdings() {
             >
               Add Investments
             </Button>
-            <Button
-              leftIcon={<Icon as={MdRefresh} />}
-              variant="outline"
-              borderColor={brandColor}
-              color={brandColor}
-              _hover={{
-                bg: brandColor,
-                color: 'white',
-              }}
-              onClick={handleRefresh}
-              isLoading={isLoading}
-              isDisabled={isLoading}
-            >
-              Refresh Data
-            </Button>
           </HStack>
         </Flex>
 
@@ -199,7 +184,7 @@ export default function Holdings() {
               watching.
             </Text>
             <Button
-              leftIcon={<Icon as={MdRefresh} />}
+              leftIcon={<Icon as={MdAdd} />}
               variant="primary"
               py="20px"
               px="16px"
@@ -215,10 +200,9 @@ export default function Holdings() {
                   bg: 'linear-gradient(15.46deg, #4A25E1 26.3%, #7B5AFF 86.4%)',
                 },
               }}
-              onClick={handleRefresh}
-              isLoading={isLoading}
+              onClick={onOpen}
             >
-              Refresh Portfolio
+              Add Investments
             </Button>
           </Flex>
         ) : portfolioData ? (
