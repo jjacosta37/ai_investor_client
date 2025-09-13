@@ -25,6 +25,7 @@ import {
   ListItem,
   Tooltip,
   Image,
+  Spinner,
 } from '@chakra-ui/react';
 import {
   MdExpandMore,
@@ -81,9 +82,16 @@ interface UpcomingEvent {
 interface WatchlistCardProps {
   stock: StockData;
   onRemove?: (symbol: string) => void;
+  isLoadingNews?: boolean;
+  newsFetchStatus?: 'fetching' | 'polling' | 'complete' | 'error';
 }
 
-export function WatchlistCard({ stock, onRemove }: WatchlistCardProps) {
+export function WatchlistCard({ 
+  stock, 
+  onRemove, 
+  isLoadingNews = false, 
+  newsFetchStatus = 'complete' 
+}: WatchlistCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Theme colors
@@ -214,7 +222,7 @@ export function WatchlistCard({ stock, onRemove }: WatchlistCardProps) {
           </Flex>
 
           {/* Right Side - News Summary with Expanded Width */}
-          {(stock.newsSummary || (stock.news && stock.news.length > 0)) && (
+          {(isLoadingNews || stock.newsSummary || (stock.news && stock.news.length > 0)) && (
             <Box flex="1" maxW="600px">
               <Box
                 p="12px"
@@ -225,61 +233,89 @@ export function WatchlistCard({ stock, onRemove }: WatchlistCardProps) {
                 w="100%"
                 onClick={(e) => e.stopPropagation()}
               >
-                <HStack justify="space-between" mb="6px">
-                  <Text fontSize="sm" color={textColor} fontWeight="600">
-                    Summary of latest news
-                  </Text>
-                  <Tooltip
-                    label={stock.sentimentRationale || 'No rationale available'}
-                    placement="top"
-                    hasArrow
-                    openDelay={300}
-                    closeDelay={150}
-                    isDisabled={!stock.sentimentRationale}
-                  >
-                    <Badge
-                      size="sm"
-                      colorScheme={
-                        stock.news &&
-                        stock.news.length > 0 &&
-                        stock.news[0].sentiment === 'positive'
-                          ? 'green'
-                          : stock.news &&
-                            stock.news.length > 0 &&
-                            stock.news[0].sentiment === 'negative'
-                          ? 'red'
-                          : 'gray'
-                      }
-                      cursor={stock.sentimentRationale ? 'help' : 'default'}
+                {isLoadingNews ? (
+                  /* Loading States */
+                  <>
+                    <HStack justify="space-between" mb="6px">
+                      <Text fontSize="sm" color={textColor} fontWeight="600">
+                        {newsFetchStatus === 'fetching' ? 'Fetching latest news...' : 'Processing news analysis...'}
+                      </Text>
+                      <Spinner size="sm" color={brandColor} />
+                    </HStack>
+                    <Text
+                      fontSize="xs"
+                      color={textColor}
+                      fontWeight="400"
+                      opacity={0.8}
+                      lineHeight="1.3"
                     >
-                      {stock.news &&
-                      stock.news.length > 0 &&
-                      stock.news[0].sentiment === 'positive'
-                        ? 'Bullish'
-                        : stock.news &&
+                      {newsFetchStatus === 'fetching' 
+                        ? 'Fetching the latest on this security. This may take some minutes.'
+                        : newsFetchStatus === 'polling'
+                        ? 'AI is analyzing the latest news and market data...'
+                        : 'Completing analysis and generating insights...'}
+                    </Text>
+                  </>
+                ) : (
+                  /* Normal Content */
+                  <>
+                    <HStack justify="space-between" mb="6px">
+                      <Text fontSize="sm" color={textColor} fontWeight="600">
+                        Summary of latest news
+                      </Text>
+                      <Tooltip
+                        label={stock.sentimentRationale || 'No rationale available'}
+                        placement="top"
+                        hasArrow
+                        openDelay={300}
+                        closeDelay={150}
+                        isDisabled={!stock.sentimentRationale}
+                      >
+                        <Badge
+                          size="sm"
+                          colorScheme={
+                            stock.news &&
+                            stock.news.length > 0 &&
+                            stock.news[0].sentiment === 'positive'
+                              ? 'green'
+                              : stock.news &&
+                                stock.news.length > 0 &&
+                                stock.news[0].sentiment === 'negative'
+                              ? 'red'
+                              : 'gray'
+                          }
+                          cursor={stock.sentimentRationale ? 'help' : 'default'}
+                        >
+                          {stock.news &&
                           stock.news.length > 0 &&
-                          stock.news[0].sentiment === 'negative'
-                        ? 'Bearish'
-                        : 'Neutral'}
-                    </Badge>
-                  </Tooltip>
-                </HStack>
-                <Text
-                  fontSize="xs"
-                  color={textColor}
-                  fontWeight="400"
-                  noOfLines={3}
-                  lineHeight="1.3"
-                >
-                  {stock.newsSummary ||
-                    (stock.news && stock.news.length > 1
-                      ? `${stock.news[0].headline} • ${
-                          stock.news[1]?.headline || ''
-                        }`
-                      : stock.news && stock.news.length > 0
-                      ? stock.news[0].headline
-                      : 'No news summary available')}
-                </Text>
+                          stock.news[0].sentiment === 'positive'
+                            ? 'Bullish'
+                            : stock.news &&
+                              stock.news.length > 0 &&
+                              stock.news[0].sentiment === 'negative'
+                            ? 'Bearish'
+                            : 'Neutral'}
+                        </Badge>
+                      </Tooltip>
+                    </HStack>
+                    <Text
+                      fontSize="xs"
+                      color={textColor}
+                      fontWeight="400"
+                      noOfLines={3}
+                      lineHeight="1.3"
+                    >
+                      {stock.newsSummary ||
+                        (stock.news && stock.news.length > 1
+                          ? `${stock.news[0].headline} • ${
+                              stock.news[1]?.headline || ''
+                            }`
+                          : stock.news && stock.news.length > 0
+                          ? stock.news[0].headline
+                          : 'No news summary available')}
+                    </Text>
+                  </>
+                )}
               </Box>
             </Box>
           )}

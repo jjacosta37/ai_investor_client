@@ -213,7 +213,10 @@ export interface WatchlistCreateRequest {
   security_symbol: string;
 }
 
-export interface WatchlistCreateResponse extends WatchlistItem {}
+export interface WatchlistCreateResponse extends WatchlistItem {
+  has_news_summary: boolean;
+  needs_news_fetch: boolean;
+}
 
 // Holdings Types
 export interface BrokerDetail {
@@ -327,4 +330,26 @@ export interface CreateHoldingResponse {
   notes: string;
   source: string;
   created_at: string;
+}
+
+// News Summary Async Fetching Types
+export interface NewsSummaryTaskResponse {
+  task_id: string;
+  status: 'queued';
+  symbol: string;
+  message: string;
+  estimated_completion_time: string;
+  polling_url: string;
+  force_update: boolean;
+}
+
+export interface NewsSummaryStatusResponse {
+  task_id: string;
+  status: 'processing' | 'completed' | 'failed';
+  symbol: string;
+  message: string;
+  result?: any; // Full news summary data when completed
+  estimated_remaining?: string;
+  started_at?: string | null;
+  stopped_at?: string | null;
 }

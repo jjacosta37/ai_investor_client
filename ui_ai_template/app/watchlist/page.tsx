@@ -32,8 +32,8 @@ import {
 import { useState, useEffect, useCallback } from 'react';
 import { WatchlistCard, StockData } from '@/components/watchlist/WatchlistCard';
 import { BaseModal } from '@/components/modal/BaseModal';
-import { securitiesService, watchlistService } from '@/services/api';
-import { Security, WatchlistItem } from '@/types/api';
+import { securitiesService, watchlistService, newsSummaryService } from '@/services/api';
+import { Security, WatchlistItem, NewsSummaryStatusResponse } from '@/types/api';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   transformWatchlistToStockDataArray,
@@ -56,6 +56,13 @@ export default function Watchlist() {
   const [watchlistItems, setWatchlistItems] = useState<WatchlistItem[]>([]);
   const [isLoadingWatchlist, setIsLoadingWatchlist] = useState(true);
   const [isAddingToWatchlist, setIsAddingToWatchlist] = useState(false);
+
+  // News fetching state management
+  const [newsFetchingStates, setNewsFetchingStates] = useState<Record<string, {
+    isLoading: boolean;
+    taskId?: string;
+    status?: 'fetching' | 'polling' | 'complete' | 'error';
+  }>>({});
 
   // Colors
   const textColor = useColorModeValue('navy.700', 'white');
@@ -162,6 +169,101 @@ export default function Watchlist() {
     setSearchQuery(query);
   };
 
+  // Smart polling function for news summary completion
+  const startNewsFetchPolling = useCallback(async (symbol: string, taskId: string) => {
+    if (!user) return;
+
+    // Set initial fetching state
+    setNewsFetchingStates(prev => ({
+      ...prev,
+      [symbol]: { isLoading: true, taskId, status: 'fetching' }
+    }));
+
+    try {
+      // Wait 110 seconds (P99 completion time + buffer)
+      setTimeout(async () => {
+        // Update to polling state
+        setNewsFetchingStates(prev => ({
+          ...prev,
+          [symbol]: { ...prev[symbol], status: 'polling' }
+        }));
+
+        let attempts = 0;
+        const maxAttempts = 4;
+        
+        const pollStatus = async () => {
+          try {
+            attempts++;
+            const statusResponse = await newsSummaryService.checkTaskStatus(symbol, taskId, user);
+            
+            if (statusResponse.status === 'completed') {
+              // Task completed successfully - refresh watchlist
+              console.log(`News summary completed for ${symbol}`);
+              setNewsFetchingStates(prev => ({
+                ...prev,
+                [symbol]: { isLoading: false, status: 'complete' }
+              }));
+              
+              // Refresh the entire watchlist to get updated news data
+              await fetchWatchlist();
+              
+              // Clean up the state after a short delay
+              setTimeout(() => {
+                setNewsFetchingStates(prev => {
+                  const newState = { ...prev };
+                  delete newState[symbol];
+                  return newState;
+                });
+              }, 2000);
+              
+              return;
+              
+            } else if (statusResponse.status === 'failed') {
+              // Task failed
+              console.error(`News summary failed for ${symbol}:`, statusResponse.message);
+              setNewsFetchingStates(prev => ({
+                ...prev,
+                [symbol]: { isLoading: false, status: 'error' }
+              }));
+              return;
+              
+            } else if (attempts >= maxAttempts) {
+              // Max attempts reached
+              console.warn(`News summary polling timeout for ${symbol} after ${maxAttempts} attempts`);
+              setNewsFetchingStates(prev => ({
+                ...prev,
+                [symbol]: { isLoading: false, status: 'error' }
+              }));
+              return;
+            }
+            
+            // Still processing, schedule next poll in 10 seconds
+            console.log(`News summary still processing for ${symbol}, attempt ${attempts}/${maxAttempts}`);
+            setTimeout(pollStatus, 10000);
+            
+          } catch (error) {
+            console.error(`Error polling news summary status for ${symbol}:`, error);
+            setNewsFetchingStates(prev => ({
+              ...prev,
+              [symbol]: { isLoading: false, status: 'error' }
+            }));
+          }
+        };
+        
+        // Start the polling loop
+        pollStatus();
+        
+      }, 110000); // 110 seconds initial delay
+      
+    } catch (error) {
+      console.error(`Error starting news fetch polling for ${symbol}:`, error);
+      setNewsFetchingStates(prev => ({
+        ...prev,
+        [symbol]: { isLoading: false, status: 'error' }
+      }));
+    }
+  }, [user, fetchWatchlist]);
+
   const handleAddToWatchlist = async (item: Security) => {
     if (!user) return;
 
@@ -187,6 +289,24 @@ export default function Watchlist() {
       // Transform using the utility function for consistency
       const newStockData = transformWatchlistItemToStockData(newWatchlistItem);
       setWatchlistStocks((prev) => [...prev, newStockData]);
+
+      // Check if we need to fetch news summary automatically
+      if (response.needs_news_fetch && !response.has_news_summary) {
+        console.log(`Automatically triggering news fetch for ${item.symbol}`);
+        
+        try {
+          // Queue the news summary fetch
+          const newsResponse = await newsSummaryService.queueNewsSummaryFetch(item.symbol, user);
+          console.log(`News fetch queued for ${item.symbol}, task ID: ${newsResponse.task_id}`);
+          
+          // Start the smart polling process
+          startNewsFetchPolling(item.symbol, newsResponse.task_id);
+          
+        } catch (newsError) {
+          console.error(`Error queuing news fetch for ${item.symbol}:`, newsError);
+          // Don't block the main flow if news fetching fails
+        }
+      }
 
       onClose();
       setSearchQuery('');
@@ -301,13 +421,18 @@ export default function Watchlist() {
         ) : (
           /* Watchlist Vertical Stack */
           <VStack spacing="20px" w="100%" align="stretch">
-            {watchlistStocks.map((stock) => (
-              <WatchlistCard
-                key={stock.symbol}
-                stock={stock}
-                onRemove={handleRemoveStock}
-              />
-            ))}
+            {watchlistStocks.map((stock) => {
+              const newsFetchState = newsFetchingStates[stock.symbol];
+              return (
+                <WatchlistCard
+                  key={stock.symbol}
+                  stock={stock}
+                  onRemove={handleRemoveStock}
+                  isLoadingNews={newsFetchState?.isLoading || false}
+                  newsFetchStatus={newsFetchState?.status}
+                />
+              );
+            })}
           </VStack>
         )}
 
