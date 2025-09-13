@@ -32,6 +32,7 @@ import { holdingsService } from '@/services/api';
 import { HoldingsResponse } from '@/types/api';
 import { PortfolioSummary } from '@/components/holdings/PortfolioSummary';
 import { PortfolioTreemap } from '@/components/holdings/PortfolioTreemap';
+import { ManualHoldingsModal } from '@/components/holdings/ManualHoldingsModal';
 
 export default function Holdings() {
   // Auth state
@@ -46,6 +47,11 @@ export default function Holdings() {
 
   // Modal state
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { 
+    isOpen: isManualModalOpen, 
+    onOpen: onManualModalOpen, 
+    onClose: onManualModalClose 
+  } = useDisclosure();
 
   // Colors
   const textColor = useColorModeValue('navy.700', 'white');
@@ -297,9 +303,8 @@ export default function Holdings() {
               color: 'white',
             }}
             onClick={() => {
-              // TODO: Implement manual entry
-              console.log('Manual entry clicked');
-              onClose();
+              onClose(); // Close the add investments modal
+              onManualModalOpen(); // Open the manual holdings modal
             }}
           >
             <VStack spacing="2px">
@@ -312,6 +317,26 @@ export default function Holdings() {
             </VStack>
           </Button>
         </VStack>
+      </BaseModal>
+
+      {/* Manual Holdings Management Modal */}
+      <BaseModal
+        isOpen={isManualModalOpen}
+        onClose={onManualModalClose}
+        title="Manual Holdings"
+        icon={MdEdit}
+        size="xl"
+        maxWidth="1200px"
+        allowOverflow={true}
+        trapFocus={false}
+        closeOnOverlayClick={false}
+      >
+        <ManualHoldingsModal
+          onSuccess={() => {
+            // Refresh main holdings data when manual holding is added/deleted
+            handleRefresh();
+          }}
+        />
       </BaseModal>
     </Flex>
   );

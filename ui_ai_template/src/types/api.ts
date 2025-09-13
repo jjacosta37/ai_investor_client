@@ -272,3 +272,59 @@ export interface TreemapData {
   gainLossPercent: number;
   color?: string;
 }
+
+// Manual Holdings Types
+export interface SimpleHolding {
+  id: string;
+  security: Security;
+  quantity: number;
+  average_cost: number;
+  total_cost: number;
+  current_value?: number | null;
+  unrealized_gain_loss?: number | null;
+  unrealized_gain_loss_percent?: number | null;
+  broker: string;
+  source: 'user_manual' | 'plaid';
+  first_purchase_date: string;
+  notes: string;
+  created_at: string;
+  last_updated: string;
+}
+
+export interface SimpleHoldingsResponse {
+  count: number;
+  results: SimpleHolding[];
+}
+
+export interface ManualHoldingFormData {
+  symbol: string;
+  quantity: number | '';
+  average_cost: number | '';
+  first_purchase_date: string;
+}
+
+export interface CreateHoldingRequest {
+  security_symbol: string;
+  quantity: number;
+  average_cost: number;
+  first_purchase_date: string;
+  broker?: string;
+  notes?: string;
+}
+
+export interface CreateHoldingResponse {
+  id: string;
+  security: {
+    symbol: string;
+    name: string;
+    security_type: string;
+  };
+  quantity: number;
+  average_cost: number;
+  total_cost: number;
+  broker: string;
+  first_purchase_date: string;
+  notes: string;
+  source: string;
+  created_at: string;
+}

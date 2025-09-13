@@ -21,6 +21,8 @@ interface BaseModalProps {
   title: string;
   icon?: IconType;
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  maxWidth?: string; // Custom max width override
+  allowOverflow?: boolean; // Allow content to overflow modal bounds
   children: ReactNode;
   trapFocus?: boolean;
   closeOnOverlayClick?: boolean;
@@ -32,6 +34,8 @@ export function BaseModal({
   title,
   icon,
   size = 'lg',
+  maxWidth,
+  allowOverflow = false,
   children,
   trapFocus = true,
   closeOnOverlayClick = true,
@@ -57,6 +61,7 @@ export function BaseModal({
         borderRadius="20px" 
         boxShadow="xl" 
         mx="20px"
+        maxWidth={maxWidth}
         zIndex={1500}
       >
         <ModalHeader pb="20px" borderBottom="1px solid" borderColor={borderColor}>
@@ -68,7 +73,16 @@ export function BaseModal({
           </HStack>
         </ModalHeader>
         <ModalCloseButton />
-        <ModalBody pb="30px" pt="20px">
+        <ModalBody 
+          pb="30px" 
+          pt="20px"
+          sx={allowOverflow ? {
+            overflow: 'visible',
+            '& > *': {
+              overflow: 'visible'
+            }
+          } : undefined}
+        >
           {children}
         </ModalBody>
       </ModalContent>

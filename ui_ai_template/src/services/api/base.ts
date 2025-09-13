@@ -91,6 +91,19 @@ export class BaseApiService {
           );
         }
 
+        // Handle 204 No Content response (common for DELETE operations)
+        if (response.status === 204) {
+          return undefined as T;
+        }
+
+        // Check if response has content before parsing JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          // If not JSON, return empty object or text content
+          const text = await response.text();
+          return (text ? { message: text } : {}) as T;
+        }
+
         const responseData = await response.json();
         return responseData;
       } catch (error) {
