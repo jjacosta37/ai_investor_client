@@ -282,13 +282,13 @@ export default function Watchlist() {
       // Call server API to add to watchlist
       const response = await watchlistService.addToWatchlist(item.symbol, user);
 
-      // Update local state with the new item
+      // Update local state with the new item (add to top of list)
       const newWatchlistItem = response;
-      setWatchlistItems((prev) => [...prev, newWatchlistItem]);
+      setWatchlistItems((prev) => [newWatchlistItem, ...prev]);
 
       // Transform using the utility function for consistency
       const newStockData = transformWatchlistItemToStockData(newWatchlistItem);
-      setWatchlistStocks((prev) => [...prev, newStockData]);
+      setWatchlistStocks((prev) => [newStockData, ...prev]);
 
       // Check if we need to fetch news summary automatically
       if (response.needs_news_fetch && !response.has_news_summary) {
